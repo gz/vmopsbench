@@ -79,7 +79,10 @@ plat_error_t plat_vm_create(const char *path, plat_memobj_t *memobj, size_t size
 
     int fd = -1;
     fd = shm_open(path, O_CREAT | O_RDWR | O_EXCL, 0666);
-    if (fd != 0) {
+    if (fd == -1) {
+        if (errno == EEXIST) {
+            fprintf(stderr, "ERROR: shm file '%s' already exist. delete it in /dev/shm\n", path);
+        }
         err = PLAT_ERR_MEMOBJ_CREATE;
         goto err_out_1;
     }
@@ -121,12 +124,12 @@ plat_error_t plat_vm_destroy(plat_memobj_t memobj)
 
     if (plat_mobj->fd != 0) {
         if (shm_unlink(plat_mobj->name)) {
-            printf("WARNING: Could ot unlink memobj, continuing anyway");
+            fprintf(stderr, "WARNING: could not unline '%s'. Continuing anyway.\n",
+                    plat_mobj->name);
         }
     }
 
     memset(plat_mobj, 0, sizeof(struct plat_memobj));
-
     free(plat_mobj);
 
     return PLAT_ERR_OK;
