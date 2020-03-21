@@ -15,8 +15,9 @@
 
 struct vmops_bench_cfg {
     uint32_t *coreslist;
+    uint32_t  corelist_size;
     size_t memsize;
-    size_t nrep;
+    uint32_t time_ms;
 };
 
 /**

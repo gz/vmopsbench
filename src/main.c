@@ -14,7 +14,9 @@
 
 #include "benchmarks/benchmarks.h"
 
-static struct vmops_bench_cfg cfg = { .memsize = 4096, .coreslist = NULL, .nrep = 10 };
+static struct vmops_bench_cfg cfg
+    = { .memsize = 4096, .coreslist = NULL, .corelist_size = 0, .time_ms = 10 };
+
 
 static uint32_t *parse_cores_list(const char *cores)
 {
@@ -44,10 +46,12 @@ static void print_help(const char *bin)
 int main(int argc, char *argv[])
 {
     uint32_t ncores = 0;
-    const char *benchmark = NULL;
+    const char *benchmark = "independent";
+
+    printf("+ VMOPS Benchmark\n");
 
     int opt;
-    while ((opt = getopt(argc, argv, "p:n:c:m:b:h")) != -1) {
+    while ((opt = getopt(argc, argv, "p:t:c:m:b:h")) != -1) {
         switch (opt) {
         case 'p':
             ncores = strtoul(optarg, NULL, 10);
@@ -61,8 +65,8 @@ int main(int argc, char *argv[])
         case 'b':
             benchmark = optarg;
             break;
-        case 'n':
-            cfg.nrep = strtoul(optarg, NULL, 10);
+        case 't':
+            cfg.time_ms = strtoul(optarg, NULL, 10);
             break;
         case 'h':
             print_help(argv[0]);
@@ -93,6 +97,8 @@ int main(int argc, char *argv[])
         for (uint32_t i = 0; i < ncores; i++) {
             cfg.coreslist[i] = i;
         }
+
+        cfg.corelist_size = ncores;
     }
 
     // run the benchmark
@@ -109,6 +115,9 @@ int main(int argc, char *argv[])
     } else {
         fprintf(stderr, "unsupported benchmarch '%s'\n", benchmark);
     }
+
+
+    free(cfg.coreslist);
 
     return EXIT_SUCCESS;
 }
