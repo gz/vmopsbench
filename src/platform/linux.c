@@ -454,7 +454,7 @@ plat_time_t plat_get_time(void)
  */
 plat_time_t plat_convert_time(uint32_t ms)
 {
-    return ms * 1000000;
+    return (plat_time_t)ms * 1000000UL;
 }
 
 
