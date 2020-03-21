@@ -3,7 +3,7 @@ set -ex
 make -j 12
 
 HOSTNAME=`hostname`
-DURATION_MS=5000
+DURATION_MS=20000
 MAX_CORES=`nproc`
 declare -a benchmarks=("independent" "shared-independent" "shared-isolated" "concurrent-protect")
 
