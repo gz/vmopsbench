@@ -328,13 +328,67 @@ plat_error_t plat_thread_cancel(plat_thread_t thread)
     return PLAT_ERR_OK;
 }
 
+/**
+ * @brief initializes a platform barrier
+ *
+ * @param barrier   the barrier to initialize
+ * @param nthreads  the number of threads to expect
+ *
+ * @returns error value
+ */
+plat_error_t plat_thread_barrier_init(plat_barrier_t *barrier, uint32_t nthreads)
+{
+
+    pthread_barrier_t *pbar = malloc(sizeof(pthread_barrier_t));
+    if (pbar == NULL) {
+        return PLAT_ERR_NO_MEM;
+    }
+
+    if (pthread_barrier_init(pbar, NULL, nthreads)) {
+        free(pbar);
+        return PLAT_ERR_BARRIER;
+    }
+
+    *barrier = (plat_barrier_t)pbar;
+
+    return PLAT_ERR_OK;
+}
+
+
+
+/**
+ * @brief destroys an initalized platform barrier
+ *
+ * @param barrier   the barrier to be destroyed
+ *
+ * @returns error value
+ */
+plat_error_t plat_thread_barrier_destroy(plat_barrier_t barrier)
+{
+    pthread_barrier_t *pbar = (pthread_barrier_t *)barrier;
+    if (pthread_barrier_destroy(pbar)) {
+        return PLAT_ERR_BARRIER;
+    }
+
+    return PLAT_ERR_OK;
+}
+
 
 /**
  * @brief calls a barrier to ensure synchronization among the threads
+ *
+ * @param barrier   the barrier to enter
+ *
+ * @returns error value
  */
-plat_error_t plat_thread_barrier()
+plat_error_t plat_thread_barrier(plat_barrier_t barrier)
 {
-    return -1;
+    pthread_barrier_t *pbar = (pthread_barrier_t *)barrier;
+    if (pthread_barrier_wait(pbar)) {
+        return PLAT_ERR_BARRIER;
+    }
+
+    return PLAT_ERR_OK;
 }
 
 
@@ -368,14 +422,14 @@ plat_error_t plat_thread_join(plat_thread_t other)
 static inline uint64_t rdtsc(void)
 {
     uint32_t eax, edx;
-    __asm volatile ("rdtsc" : "=a" (eax), "=d" (edx) :: "memory");
+    __asm volatile("rdtsc" : "=a"(eax), "=d"(edx)::"memory");
     return ((uint64_t)edx << 32) | eax;
 }
 
 static inline uint64_t rdtscp(void)
 {
     uint32_t eax, edx;
-    __asm volatile ("rdtscp" : "=a" (eax), "=d" (edx) :: "ecx", "memory");
+    __asm volatile("rdtscp" : "=a"(eax), "=d"(edx)::"ecx", "memory");
     return ((uint64_t)edx << 32) | eax;
 }
 
@@ -388,8 +442,8 @@ static inline uint64_t rdtscp(void)
 plat_time_t plat_get_time(void)
 {
     struct timespec t;
-    clock_gettime(CLOCK_REALTIME , &t);
-    return (uint64_t) (t.tv_sec * 1000000000UL + t.tv_nsec);
+    clock_gettime(CLOCK_REALTIME, &t);
+    return (uint64_t)(t.tv_sec * 1000000000UL + t.tv_nsec);
 }
 
 

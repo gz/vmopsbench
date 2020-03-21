@@ -29,6 +29,7 @@ typedef enum {
     PLAT_ERR_UNMAP_FAILED,
     PLAT_ERR_THREAD_CREATE,
     PLAT_ERR_FILE_OPEN,
+    PLAT_ERR_BARRIER,
 } plat_error_t;
 
 
@@ -146,6 +147,9 @@ plat_error_t plat_vm_unmap(void *addr, size_t size);
 ///< defines a platform thread
 typedef void *plat_thread_t;
 
+///< defines a platform barrier
+typedef void *plat_barrier_t;
+
 ///< the run function type
 typedef void* (*plat_thread_fn_t)(void *st);
 
@@ -163,9 +167,34 @@ plat_thread_t plat_thread_start(plat_thread_fn_t run, void *st, uint32_t coreid)
 
 
 /**
- * @brief calls a barrier to ensure synchronization among the threads
+ * @brief initializes a platform barrier
+ *
+ * @param barrier   the barrier to initialize
+ * @param nthreads  the number of threads to expect
+ *
+ * @returns error value
  */
-plat_error_t plat_thread_barrier();
+plat_error_t plat_thread_barrier_init(plat_barrier_t *barrier, uint32_t nthreads);
+
+
+/**
+ * @brief destroys an initalized platform barrier
+ *
+ * @param barrier   the barrier to be destroyed
+ *
+ * @returns error value
+ */
+plat_error_t plat_thread_barrier_destroy(plat_barrier_t barrier);
+
+
+/**
+ * @brief calls a barrier to ensure synchronization among the threads
+ *
+ * @param barrier   the barrier to enter
+ *
+ * @returns error value
+ */
+plat_error_t plat_thread_barrier(plat_barrier_t barrier);
 
 
 /**
