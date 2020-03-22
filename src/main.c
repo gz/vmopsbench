@@ -179,8 +179,10 @@ int main(int argc, char *argv[])
         vmops_bench_run_shared_isolated(&cfg);
     } else if (strcmp(benchmark, "shared-independent") == 0) {
         vmops_bench_run_shared_independent(&cfg);
-    } else if (strcmp(benchmark, "concurrent-protect") == 0) {
-        vmops_bench_run_concurrent_protect(&cfg);
+    } else if (strcmp(benchmark, "protect-shared") == 0) {
+        vmops_bench_run_protect_shared(&cfg);
+    } else if (strcmp(benchmark, "protect-independent") == 0) {
+        vmops_bench_run_protect_independent(&cfg);
     } else {
         fprintf(stderr, "unsupported benchmarch '%s'\n", benchmark);
     }
