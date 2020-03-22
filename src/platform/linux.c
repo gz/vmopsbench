@@ -38,7 +38,7 @@
  */
 plat_error_t plat_init(void)
 {
-    printf("Initializing VMOPS bench on Linux");
+    printf("Initializing VMOPS bench on Linux\n");
     return PLAT_ERR_OK;
 }
 
