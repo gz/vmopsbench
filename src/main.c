@@ -45,19 +45,28 @@ static void print_help(const char *bin)
  */
 int main(int argc, char *argv[])
 {
+    plat_error_t err;
+
     uint32_t ncores = 0;
     const char *benchmark = "independent";
+
+
+    plat_topo_numa_t numa_topology = PLAT_TOPOLOGY_NUMA_FILL;
+    plat_topo_cores_t cores_topology = PLAT_TOPOLOGY_CORES_INTERLEAVE;
 
     printf("+ VMOPS Benchmark\n");
 
     int opt;
-    while ((opt = getopt(argc, argv, "p:t:c:m:b:h")) != -1) {
+    while ((opt = getopt(argc, argv, "ip:t:c:m:b:h")) != -1) {
         switch (opt) {
         case 'p':
             ncores = strtoul(optarg, NULL, 10);
             break;
         case 'c':
             cfg.coreslist = parse_cores_list(optarg);
+            break;
+        case 'i' :
+            numa_topology = PLAT_TOPOLOGY_NUMA_INTERLEAVE;
             break;
         case 'm':
             cfg.memsize = strtoul(optarg, NULL, 10);
@@ -83,23 +92,32 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
+    plat_init();
+
     // validate cores list
     if (cfg.coreslist == NULL) {
         if (ncores == 0) {
             ncores = 1;
         }
 
-        cfg.coreslist = malloc(ncores * sizeof(uint32_t));
-        if (cfg.coreslist == NULL) {
-            fprintf(stderr, "ERROR: Out of memory.\n");
+        err = plat_get_topology(numa_topology, cores_topology, &cfg.coreslist, &cfg.corelist_size);
+        if (err != PLAT_ERR_OK) {
+            fprintf(stderr, "ERROR: Could not get the core list.\n");
             exit(EXIT_FAILURE);
         }
-        for (uint32_t i = 0; i < ncores; i++) {
-            cfg.coreslist[i] = i;
-        }
 
-        cfg.corelist_size = ncores;
+        if (ncores > cfg.corelist_size) {
+            fprintf(stderr, "WARNING: Requested more cores thatn there are available.\n");
+        } else {
+            cfg.corelist_size = ncores;
+        }
     }
+
+    printf("Using Cores: [ %d", cfg.coreslist[0]);
+    for (uint32_t i = 1; i < cfg.corelist_size; i++) {
+        printf(", %d", cfg.coreslist[i]);
+    }
+    printf(" ]\n");
 
     // run the benchmark
     if (strcmp(benchmark, "isolated") == 0) {

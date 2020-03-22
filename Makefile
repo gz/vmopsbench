@@ -20,7 +20,7 @@ DEPS_ALL=bin $(DEPS_SRC) $(DEPS_INC)
 
 
 ifeq ($(PLATFORM),linux)
-  PLAT_LIBS=-lrt -lpthread
+  PLAT_LIBS=-lnuma -lrt -lpthread
 else
   PLAT_LIBS=
 endif
