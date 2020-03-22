@@ -15,10 +15,6 @@ from plotnine.data import *
 
 import warnings
 
-TM = ["Sequential", "Interleave"]
-RS = ["One", "Socket", "L1"]
-BS = [1, 8]
-
 from plotnine.themes.elements import (element_line, element_rect,
                        element_text, element_blank)
 from plotnine.themes.theme import theme
@@ -32,13 +28,11 @@ class theme_my538(theme_gray):
             theme(
                 axis_text=element_text(size=base_size+3),
                 axis_ticks=element_blank(),
-                title=element_text(color='#3C3C3C'),
-                legend_background=element_rect(fill='None'),
-                legend_key=element_rect(fill='#FFFFFF', colour=None),
-                panel_background=element_rect(fill=bgcolor),
-                panel_border=element_blank(),
-                panel_grid_major=element_line(
-                    color='#D5D5D5', linetype='solid', size=1),
+                title=element_text(color='#3C3C3C'),TM = ["Sequential", "Interleave"]
+RS = ["One", "Socket", "L1"]
+BS = [1, 8]
+
+ize=1),
                 panel_grid_minor=element_blank(),
                 plot_background=element_rect(
                     fill=bgcolor, color=bgcolor, size=1),
