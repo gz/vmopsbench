@@ -45,30 +45,6 @@ class theme_my538(theme_gray):
                 strip_background=element_rect(size=0)),
             inplace=True)
 
-
-def plot_benchmark_throughputs(df):
-    "Plots a throughput graph for every data-structure in the results file"
-    # Fail if we have more than one experiment duration
-    assert(len(df.duration.unique()) == 1)
-
-    for name in df.name.unique():
-        benchmark = df.loc[df['name'] == name]
-        benchmark = benchmark.groupby(['name', 'rs', 'tm', 'batch_size', 'threads', 'duration'], as_index=False).agg({'exp_time_in_sec': 'max', 'iterations': 'sum'})
-        benchmark['throughput'] = benchmark['iterations'] / benchmark['exp_time_in_sec']
-        benchmark['configuration'] = benchmark.apply(lambda row: "RS={} TM={} BS={}".format(row.rs, row.tm, row.batch_size), axis = 1)
-
-        p = ggplot(data=benchmark, mapping=aes(x='threads', y='throughput', ymin=0, xmax=12, color='configuration')) + \
-            theme_my538(base_size=13) + \
-            labs(y="Throughput [Melems/s]") + \
-            theme(legend_position='top', legend_title = element_blank()) + \
-            scale_x_continuous(breaks=benchmark['threads'].unique(), labels=["{}".format(thr) for thr in benchmark['threads'].unique()], name='# Threads') + \
-            scale_y_continuous(labels=lambda lst: ["{:,}".format(x / 1_000_000) for x in lst]) + \
-            geom_point() + \
-            geom_line()
-        
-        p.save("throughput-{}.png".format(name), dpi=300)
-        p.save("throughput-{}.pdf".format(name), dpi=300)
-
 def plot_scalability(df):
     "Plots a throughput graph for various threads showing the throughput over time"
     benchmark = df.groupby(['ncores', 'config'], as_index=False).agg({'tput': 'sum', 'tid': 'count', 'runtime': 'max'})
