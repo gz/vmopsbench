@@ -56,3 +56,5 @@ bin/*
 
 # Log files
 *.log
+*.png
+*.pdf
