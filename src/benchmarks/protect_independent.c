@@ -13,7 +13,7 @@
 #include "benchmarks.h"
 #include "utils.h"
 
-#define VMOBJ_NAME "/vmops_bench_independent_%d"
+#define VMOBJ_NAME "/vmops_bench_protect_independent_%d"
 
 struct bench_run_arg
 {
@@ -32,8 +32,6 @@ static void *bench_run_fn(void *st)
 
     struct bench_run_arg *args = st;
 
-    printf("thread %d started. Running for %d ms.\n", args->tid, args->time_ms);
-
     plat_time_t t_delta = plat_convert_time(args->time_ms);
 
     size_t counter = 0 ;
@@ -41,10 +39,11 @@ static void *bench_run_fn(void *st)
     void *addr;
     err = plat_vm_map(&addr, args->memsize, args->memobj, 0);
     if (err != PLAT_ERR_OK) {
-        printf("failed to map!\n");
+        LOG_ERR("thread %d. failed to map memory!\n", args->tid);
         exit(EXIT_FAILURE);
     }
 
+    LOG_INFO("thread %d ready.\n", args->tid);
     plat_thread_barrier(args->barrier);
 
 
@@ -54,12 +53,12 @@ static void *bench_run_fn(void *st)
     while(t_current < t_end) {
         err = plat_vm_protect(addr, args->memsize, PLAT_PERM_READ_ONLY);
         if (err != PLAT_ERR_OK) {
-            printf("failed to protect!\n");
+            LOG_ERR("thread %d. failed to protect memory!\n", args->tid);
             exit(EXIT_FAILURE);
         }
         err = plat_vm_protect(addr, args->memsize, PLAT_PERM_READ_WRITE);
         if (err != PLAT_ERR_OK) {
-            printf("failed to protect!\n");
+            LOG_ERR("thread %d. failed to unprotect memory!\n", args->tid);
             exit(EXIT_FAILURE);
         }
         t_current = plat_get_time();
@@ -75,7 +74,7 @@ static void *bench_run_fn(void *st)
 
     plat_thread_barrier(args->barrier);
 
-    printf("thread %d ended. %zu map + unmaps\n", args->tid, counter);
+    LOG_INFO("thread %d done. ops = %zu\n", args->tid, counter);
 
     args->count = counter;
 
@@ -95,7 +94,7 @@ void vmops_bench_run_protect_independent(struct vmops_bench_cfg *cfg)
 {
     plat_error_t err;
 
-    printf("+ VMOPS Selecting the protect-independent configuration.\n");
+    LOG_INFO("Preparing 'Protect Independent' benchmark.\n");
 
     plat_barrier_t barrier;
     err = plat_thread_barrier_init(&barrier, cfg->corelist_size);
@@ -109,6 +108,9 @@ void vmops_bench_run_protect_independent(struct vmops_bench_cfg *cfg)
         exit(EXIT_FAILURE);
     }
 
+    LOG_INFO("creating %d memory objects of size %zu\n", cfg->corelist_size, cfg->memsize);
+    LOG_INFO("total memory usage = %zu kB\n", (cfg->corelist_size * cfg->memsize) >> 10);
+
     // buffer for the path
     char pathbuf[256];
 
@@ -116,6 +118,7 @@ void vmops_bench_run_protect_independent(struct vmops_bench_cfg *cfg)
         snprintf(pathbuf, sizeof(pathbuf), VMOBJ_NAME, cfg->coreslist[i]);
         err = plat_vm_create(pathbuf, &args[i].memobj, cfg->memsize);
         if (err != PLAT_ERR_OK) {
+            LOG_ERR("creation of shared memory object failed! [%d / %d]\n", i, cfg->corelist_size);
             for (uint32_t j = 0; j < i; j++) {
                 plat_vm_destroy(args[j].memobj);
             }
@@ -123,13 +126,16 @@ void vmops_bench_run_protect_independent(struct vmops_bench_cfg *cfg)
         }
     }
 
+    LOG_INFO("creating %d threads\n", cfg->corelist_size);
     for (uint32_t i = 0; i < cfg->corelist_size; i++) {
+        LOG_INFO("thread %d on core %d\n", i, cfg->coreslist[i]);
         args[i].tid = i;
         args[i].memsize = cfg->memsize;
         args[i].time_ms = cfg->time_ms;
         args[i].barrier = barrier;
         args[i].thread = plat_thread_start(bench_run_fn, &args[i], cfg->coreslist[i]);
         if (args[i].thread == NULL) {
+            LOG_ERR("failed to start threads! [%d / %d]\n", i, cfg->corelist_size);
             for (uint32_t j = 0; j < i; j++) {
                 plat_thread_cancel(args[j].thread);
             }
@@ -144,13 +150,15 @@ void vmops_bench_run_protect_independent(struct vmops_bench_cfg *cfg)
         }
     }
 
+    LOG_INFO("cleaning up memory objects\n");
     for (uint32_t i = 0; i < cfg->corelist_size; i++) {
         plat_vm_destroy(args[i].memobj);
     }
 
     plat_thread_barrier_destroy(barrier);
 
-    printf("+ VMOPS Benchmark done. ncores=%d, total ops = %zu\n", cfg->corelist_size, total_ops);
+    LOG_RESULT(cfg->benchmark, cfg->memsize, cfg->time_ms, cfg->corelist_size, total_ops);
+    LOG_INFO("Benchmark done. total ops = %zu\n", total_ops);
 
     free(args);
 }

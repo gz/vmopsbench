@@ -46,13 +46,14 @@ static void *bench_run_fn(void *st)
         void *addr;
         err = plat_vm_map(&addr, args->memsize, args->memobj, 0);
         if (err != PLAT_ERR_OK) {
-            LOG_ERR("failed to map!\n");
+            LOG_ERR("thread %d. failed to map memory!\n", args->tid);
         }
 
         err = plat_vm_unmap(addr, args->memsize);
         if (err != PLAT_ERR_OK) {
-            LOG_ERR("failed to unmap!\n");
+            LOG_ERR("thread %d. failed to unmap memory!\n", args->tid);
         }
+
         t_current = plat_get_time();
         counter++;
     }
@@ -93,11 +94,11 @@ void vmops_bench_run_independent(struct vmops_bench_cfg *cfg)
         exit(EXIT_FAILURE);
     }
 
-    // buffer for the path
-    char pathbuf[256];
-
     LOG_INFO("creating %d memory objects of size %zu\n", cfg->corelist_size, cfg->memsize);
     LOG_INFO("total memory usage = %zu kB\n", (cfg->corelist_size * cfg->memsize) >> 10);
+
+    // buffer for the path
+    char pathbuf[256];
 
     for (uint32_t i = 0; i < cfg->corelist_size; i++) {
         snprintf(pathbuf, sizeof(pathbuf), VMOBJ_NAME, cfg->coreslist[i]);
@@ -141,8 +142,8 @@ void vmops_bench_run_independent(struct vmops_bench_cfg *cfg)
     }
 
     plat_thread_barrier_destroy(barrier);
-    LOG_RESULT(cfg->benchmark, cfg->memsize, cfg->time_ms, cfg->corelist_size, total_ops);
 
+    LOG_RESULT(cfg->benchmark, cfg->memsize, cfg->time_ms, cfg->corelist_size, total_ops);
     LOG_INFO("Benchmark done. total ops = %zu\n", total_ops);
 
     free(args);

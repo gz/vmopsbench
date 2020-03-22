@@ -180,13 +180,13 @@ int main(int argc, char *argv[])
     LOG_PRINT("==========================================================================\n");
 
     // run the benchmark
-    if (strcmp(cfg.benchmark, "isolated") == 0) {
+    if (strcmp(cfg.benchmark, "mapunmap-isolated") == 0) {
         vmops_bench_run_isolated(&cfg);
-    } else if (strcmp(cfg.benchmark, "independent") == 0) {
+    } else if (strcmp(cfg.benchmark, "mapunmap-independent") == 0) {
         vmops_bench_run_independent(&cfg);
-    } else if (strcmp(cfg.benchmark, "shared-isolated") == 0) {
+    } else if (strcmp(cfg.benchmark, "mapunmap-shared-isolated") == 0) {
         vmops_bench_run_shared_isolated(&cfg);
-    } else if (strcmp(cfg.benchmark, "shared-independent") == 0) {
+    } else if (strcmp(cfg.benchmark, "mapunmap-shared-independent") == 0) {
         vmops_bench_run_shared_independent(&cfg);
     } else if (strcmp(cfg.benchmark, "protect-shared") == 0) {
         vmops_bench_run_protect_shared(&cfg);
