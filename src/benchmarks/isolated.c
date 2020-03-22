@@ -15,7 +15,7 @@
 
 #define ADDRESS_OFFSET (512UL << 30)
 
-#define VMOBJ_NAME "/vmops_bench_solated_%d"
+#define VMOBJ_NAME "/vmops_bench_isolated_%d"
 
 struct bench_run_arg
 {

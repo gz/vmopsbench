@@ -72,7 +72,18 @@ void vmops_bench_run_shared_independent(struct vmops_bench_cfg *cfg);
  *  - there is a single shared memory region
  *  - calling randomly protect() on pages.
  */
-void vmops_bench_run_concurrent_protect(struct vmops_bench_cfg *cfg);
+void vmops_bench_run_protect_shared(struct vmops_bench_cfg *cfg);
+
+
+/**
+ * @brief runs the vmops benchmark in the concurrent protect configuration
+ *
+ * @param cfg   the benchmark configuration
+ *
+ *  - there is a shared memory region per thread
+ *  - calling randomly protect() on pages.
+ */
+void vmops_bench_run_protect_independent(struct vmops_bench_cfg *cfg);
 
 
 #endif /* __VMOPS_BENCHMARKS_H_ */

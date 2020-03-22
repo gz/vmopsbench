@@ -20,7 +20,7 @@
  *  - there is a single shared memory region
  *  - calling randomly protect() on pages.
  */
-void vmops_bench_run_concurrent_protect(struct vmops_bench_cfg *cfg)
+void vmops_bench_run_protect_shared(struct vmops_bench_cfg *cfg)
 {
     (void)(cfg);
 }

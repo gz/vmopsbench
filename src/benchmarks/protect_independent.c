@@ -13,7 +13,7 @@
 #include "benchmarks.h"
 #include "utils.h"
 
-#define VMOBJ_NAME "/vmops_bench_shared_independent"
+#define VMOBJ_NAME "/vmops_bench_independent_%d"
 
 struct bench_run_arg
 {
@@ -38,6 +38,13 @@ static void *bench_run_fn(void *st)
 
     size_t counter = 0 ;
 
+    void *addr;
+    err = plat_vm_map(&addr, args->memsize, args->memobj, 0);
+    if (err != PLAT_ERR_OK) {
+        printf("failed to map!\n");
+        exit(EXIT_FAILURE);
+    }
+
     plat_thread_barrier(args->barrier);
 
 
@@ -45,19 +52,25 @@ static void *bench_run_fn(void *st)
     plat_time_t t_end = t_current + t_delta;
 
     while(t_current < t_end) {
-
-        void *addr;
-        err = plat_vm_map(&addr, args->memsize, args->memobj, 0);
+        err = plat_vm_protect(addr, args->memsize, PLAT_PERM_READ_ONLY);
         if (err != PLAT_ERR_OK) {
-            printf("failed to map!\n");
+            printf("failed to protect!\n");
+            exit(EXIT_FAILURE);
         }
-
-        err = plat_vm_unmap(addr, args->memsize);
+        err = plat_vm_protect(addr, args->memsize, PLAT_PERM_READ_WRITE);
         if (err != PLAT_ERR_OK) {
-            printf("failed to unmap!\n");
+            printf("failed to protect!\n");
+            exit(EXIT_FAILURE);
         }
         t_current = plat_get_time();
         counter++;
+    }
+
+    plat_thread_barrier(args->barrier);
+
+    err = plat_vm_unmap(addr, args->memsize);
+    if (err != PLAT_ERR_OK) {
+        printf("failed to unmap!\n");
     }
 
     plat_thread_barrier(args->barrier);
@@ -78,11 +91,11 @@ static void *bench_run_fn(void *st)
  *  - there is a single shared memory region
  *  - calling randomly protect() on pages.
  */
-void vmops_bench_run_shared_independent(struct vmops_bench_cfg *cfg)
+void vmops_bench_run_protect_independent(struct vmops_bench_cfg *cfg)
 {
     plat_error_t err;
 
-    printf("+ VMOPS Selecting the shared independent configuration.\n");
+    printf("+ VMOPS Selecting the protect-independent configuration.\n");
 
     plat_barrier_t barrier;
     err = plat_thread_barrier_init(&barrier, cfg->corelist_size);
@@ -96,13 +109,18 @@ void vmops_bench_run_shared_independent(struct vmops_bench_cfg *cfg)
         exit(EXIT_FAILURE);
     }
 
-    plat_memobj_t mobj;
-    err = plat_vm_create(VMOBJ_NAME, &mobj, cfg->memsize);
-    if (err != PLAT_ERR_OK) {
-        printf(
-            "could not create the memobj\n"
-        );
-        exit(EXIT_FAILURE);
+    // buffer for the path
+    char pathbuf[256];
+
+    for (uint32_t i = 0; i < cfg->corelist_size; i++) {
+        snprintf(pathbuf, sizeof(pathbuf), VMOBJ_NAME, cfg->coreslist[i]);
+        err = plat_vm_create(pathbuf, &args[i].memobj, cfg->memsize);
+        if (err != PLAT_ERR_OK) {
+            for (uint32_t j = 0; j < i; j++) {
+                plat_vm_destroy(args[j].memobj);
+            }
+            exit(EXIT_FAILURE);
+        }
     }
 
     for (uint32_t i = 0; i < cfg->corelist_size; i++) {
@@ -110,7 +128,6 @@ void vmops_bench_run_shared_independent(struct vmops_bench_cfg *cfg)
         args[i].memsize = cfg->memsize;
         args[i].time_ms = cfg->time_ms;
         args[i].barrier = barrier;
-        args[i].memobj = mobj;
         args[i].thread = plat_thread_start(bench_run_fn, &args[i], cfg->coreslist[i]);
         if (args[i].thread == NULL) {
             for (uint32_t j = 0; j < i; j++) {
@@ -127,7 +144,9 @@ void vmops_bench_run_shared_independent(struct vmops_bench_cfg *cfg)
         }
     }
 
-    plat_vm_destroy(mobj);
+    for (uint32_t i = 0; i < cfg->corelist_size; i++) {
+        plat_vm_destroy(args[i].memobj);
+    }
 
     plat_thread_barrier_destroy(barrier);
 
