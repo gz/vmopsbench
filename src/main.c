@@ -11,6 +11,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <ctype.h>
 
 #include "benchmarks/benchmarks.h"
 
@@ -18,16 +19,66 @@ static struct vmops_bench_cfg cfg
     = { .memsize = 4096, .coreslist = NULL, .corelist_size = 0, .time_ms = 10 };
 
 
-static uint32_t *parse_cores_list(const char *cores)
+static int parse_cores_list(char *cores, uint32_t **retcoreslist, uint32_t *ncores)
 {
-    size_t i = 0;
-
-    /* 1,2,3-5,6 */
-    while (cores[i]) {
-        i++;
+    size_t coreslen = strlen(cores);
+    if (coreslen == 0) {
+        fprintf(stderr, "ERROR: coreslist length was 0\n");
+        exit(EXIT_FAILURE);
     }
 
-    return NULL;
+    if (!isdigit(cores[0])) {
+        fprintf(stderr, "ERROR: coreslist needs to start with a digit, was %c\n", cores[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    char *current = cores;
+
+    size_t corecount = 1;
+    while (*current) {
+        if (*current == ',') {
+            corecount++;
+        }
+        current++;
+    }
+
+    uint32_t *coreslist = malloc(corecount * sizeof(uint32_t));
+    if (coreslist == NULL) {
+        return -1;
+    }
+
+    current = cores;
+    char *lookahead = cores;
+
+    size_t idx = 0;
+    while (current < cores + coreslen) {
+        while (isdigit(*lookahead) && *lookahead != 0) {
+            lookahead++;
+        }
+
+        if (*lookahead != 0 && *lookahead != ',')  {
+            fprintf(stderr, "ERROR: expected a ',' was '%c'\n", *lookahead);
+            exit(EXIT_FAILURE);
+        }
+
+        if (lookahead == current) {
+            fprintf(stderr, "ERROR: expected a digit was '%c'\n", *lookahead);
+            exit(EXIT_FAILURE);
+        }
+
+        *lookahead = 0;
+
+        uint32_t cid = strtoul(current, NULL, 10);
+        coreslist[idx++] = cid;
+
+        lookahead++;
+        current = lookahead;
+    }
+
+    *retcoreslist = coreslist;
+    *ncores = corecount;
+
+    return 0;
 }
 
 static void print_help(const char *bin)
@@ -63,7 +114,7 @@ int main(int argc, char *argv[])
             ncores = strtoul(optarg, NULL, 10);
             break;
         case 'c':
-            cfg.coreslist = parse_cores_list(optarg);
+            parse_cores_list(optarg, &cfg.coreslist, &cfg.corelist_size);
             break;
         case 'i' :
             numa_topology = PLAT_TOPOLOGY_NUMA_INTERLEAVE;
