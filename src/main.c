@@ -13,6 +13,7 @@
 #include <getopt.h>
 #include <ctype.h>
 
+#include "logging.h"
 #include "benchmarks/benchmarks.h"
 
 static struct vmops_bench_cfg cfg
@@ -23,12 +24,12 @@ static int parse_cores_list(char *cores, uint32_t **retcoreslist, uint32_t *ncor
 {
     size_t coreslen = strlen(cores);
     if (coreslen == 0) {
-        fprintf(stderr, "ERROR: coreslist length was 0\n");
+        LOG_ERR("coreslist length was 0\n");
         exit(EXIT_FAILURE);
     }
 
     if (!isdigit(cores[0])) {
-        fprintf(stderr, "ERROR: coreslist needs to start with a digit, was %c\n", cores[0]);
+        LOG_ERR("coreslist needs to start with a digit, was %c\n", cores[0]);
         exit(EXIT_FAILURE);
     }
 
@@ -57,12 +58,12 @@ static int parse_cores_list(char *cores, uint32_t **retcoreslist, uint32_t *ncor
         }
 
         if (*lookahead != 0 && *lookahead != ',')  {
-            fprintf(stderr, "ERROR: expected a ',' was '%c'\n", *lookahead);
+            LOG_ERR("expected a ',' was '%c'\n", *lookahead);
             exit(EXIT_FAILURE);
         }
 
         if (lookahead == current) {
-            fprintf(stderr, "ERROR: expected a digit was '%c'\n", *lookahead);
+            LOG_ERR("expected a digit was '%c'\n", *lookahead);
             exit(EXIT_FAILURE);
         }
 
@@ -99,13 +100,12 @@ int main(int argc, char *argv[])
     plat_error_t err;
 
     uint32_t ncores = 0;
-    const char *benchmark = "independent";
-
+    cfg.benchmark = "independent";
 
     plat_topo_numa_t numa_topology = PLAT_TOPOLOGY_NUMA_FILL;
     plat_topo_cores_t cores_topology = PLAT_TOPOLOGY_CORES_INTERLEAVE;
 
-    printf("+ VMOPS Benchmark\n");
+    plat_init();
 
     int opt;
     while ((opt = getopt(argc, argv, "ip:t:c:m:b:h")) != -1) {
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
             cfg.memsize = strtoul(optarg, NULL, 10);
             break;
         case 'b':
-            benchmark = optarg;
+            cfg.benchmark = optarg;
             break;
         case 't':
             cfg.time_ms = strtoul(optarg, NULL, 10);
@@ -139,11 +139,10 @@ int main(int argc, char *argv[])
 
     // either the first ncores are selected, or a provided cores list
     if (ncores != 0 && cfg.coreslist != NULL) {
-        fprintf(stderr, "ERROR: Please provide either coreslist or number of cores.\n");
+        LOG_ERR("Please provide either coreslist or number of cores.\n");
         exit(EXIT_FAILURE);
     }
 
-    plat_init();
 
     // validate cores list
     if (cfg.coreslist == NULL) {
@@ -153,38 +152,48 @@ int main(int argc, char *argv[])
 
         err = plat_get_topology(numa_topology, cores_topology, &cfg.coreslist, &cfg.corelist_size);
         if (err != PLAT_ERR_OK) {
-            fprintf(stderr, "ERROR: Could not get the core list.\n");
+            LOG_ERR("could not get the core list.\n");
             exit(EXIT_FAILURE);
         }
 
         if (ncores > cfg.corelist_size) {
-            fprintf(stderr, "WARNING: Requested more cores thatn there are available.\n");
+            LOG_WARN("requested more cores thatn there are available.\n");
         } else {
             cfg.corelist_size = ncores;
         }
     }
 
-    printf("Using Cores: [ %d", cfg.coreslist[0]);
-    for (uint32_t i = 1; i < cfg.corelist_size; i++) {
-        printf(", %d", cfg.coreslist[i]);
+    if ((cfg.corelist_size * cfg.memsize) > (32UL << 30)) {
+        LOG_WARN("estimate total required memory > 32GB!\n");
     }
-    printf(" ]\n");
+
+    LOG_PRINT("==========================================================================\n");
+    LOG_PRINT("benchmark: %s\n", cfg.benchmark);
+    LOG_PRINT("memsize:   %zu\n", cfg.memsize);
+    LOG_PRINT("time:      %d ms\n", cfg.time_ms);
+    LOG_PRINT("ncores:    %d\n", cfg.corelist_size);
+    LOG_PRINT("cores:     [ %d", cfg.coreslist[0]);
+    for (uint32_t i = 1; i < cfg.corelist_size; i++) {
+        LOG_PRINT_CONT(", %d", cfg.coreslist[i]);
+    }
+    LOG_PRINT_END(" ]\n");
+    LOG_PRINT("==========================================================================\n");
 
     // run the benchmark
-    if (strcmp(benchmark, "isolated") == 0) {
+    if (strcmp(cfg.benchmark, "isolated") == 0) {
         vmops_bench_run_isolated(&cfg);
-    } else if (strcmp(benchmark, "independent") == 0) {
+    } else if (strcmp(cfg.benchmark, "independent") == 0) {
         vmops_bench_run_independent(&cfg);
-    } else if (strcmp(benchmark, "shared-isolated") == 0) {
+    } else if (strcmp(cfg.benchmark, "shared-isolated") == 0) {
         vmops_bench_run_shared_isolated(&cfg);
-    } else if (strcmp(benchmark, "shared-independent") == 0) {
+    } else if (strcmp(cfg.benchmark, "shared-independent") == 0) {
         vmops_bench_run_shared_independent(&cfg);
-    } else if (strcmp(benchmark, "protect-shared") == 0) {
+    } else if (strcmp(cfg.benchmark, "protect-shared") == 0) {
         vmops_bench_run_protect_shared(&cfg);
-    } else if (strcmp(benchmark, "protect-independent") == 0) {
+    } else if (strcmp(cfg.benchmark, "protect-independent") == 0) {
         vmops_bench_run_protect_independent(&cfg);
     } else {
-        fprintf(stderr, "unsupported benchmarch '%s'\n", benchmark);
+        LOG_ERR("unsupported benchmarch '%s'\n", cfg.benchmark);
     }
 
 

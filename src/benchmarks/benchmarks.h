@@ -12,8 +12,10 @@
 #include <stdlib.h>
 
 #include "../platform/platform.h"
+#include "../logging.h"
 
 struct vmops_bench_cfg {
+    const char *benchmark;
     uint32_t *coreslist;
     uint32_t  corelist_size;
     size_t memsize;

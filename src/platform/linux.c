@@ -24,6 +24,7 @@
 
 
 #include "platform.h"
+#include "../logging.h"
 
 
 /*
@@ -38,7 +39,7 @@
  */
 plat_error_t plat_init(void)
 {
-    printf("Initializing VMOPS bench on Linux\n");
+    LOG_PRINT("Initializing VMOPS bench on Linux\n");
     return PLAT_ERR_OK;
 }
 
@@ -53,6 +54,9 @@ plat_error_t plat_init(void)
 static plat_error_t get_topolocy_no_numa(uint32_t **coreids, uint32_t *ncoreids)
 {
     uint32_t ncid = get_nprocs();
+
+    LOG_WARN("seleciting cores using sequential fallback. nproc = %d\n", ncid);
+
     uint32_t *cids = malloc(ncid * sizeof(uint32_t));
     if (cids == NULL) {
         return PLAT_ERR_NO_MEM;
@@ -87,14 +91,14 @@ plat_error_t plat_get_topology(plat_topo_numa_t numapolicy, plat_topo_cores_t co
     }
 
     if (numa_available() == -1) {
-        fprintf(stderr, "WARNING: NUMA not available!\n");
+        LOG_WARN("NUMA not available!\n");
         return get_topolocy_no_numa(coreids, ncoreids);
     }
 
     uint32_t nproc = numa_num_task_cpus();
     uint32_t nnodes = numa_num_task_nodes();
 
-    printf("+ VMPOS Using %d NUMA nodes and %d cpus in total.\n", nnodes, nproc);
+    LOG_INFO("seleciting cores from NUMA topology. nodes=%d, nproc=%d\n", nnodes, nproc);
 
     struct bitmask **nodecpus = malloc(nnodes * sizeof(struct bitmask *));
     if (nodecpus == NULL) {
@@ -112,13 +116,14 @@ plat_error_t plat_get_topology(plat_topo_numa_t numapolicy, plat_topo_cores_t co
         }
 
         if (numa_node_to_cpus(i, nodecpus[i])) {
-            fprintf(stderr, "WARNING: Could not get the CPUs of the node!\n");
+            LOG_WARN("could not get the CPUs of the node!\n");
             goto err_out_1;
         }
     }
 
     if (nproc != (uint32_t)get_nprocs()) {
-        fprintf(stderr, "WARNING: numa_num_task_cpus != nproc()\n");
+        fprintf(stderr, "WARNING: \n");
+        LOG_WARN("numa_num_task_cpus=%d != nproc=%d\n", nproc, get_nprocs());
     }
 
     uint32_t *cids = malloc(nproc * sizeof(uint32_t));
@@ -127,27 +132,29 @@ plat_error_t plat_get_topology(plat_topo_numa_t numapolicy, plat_topo_cores_t co
     (void)(corepolicy);
 
     switch (numapolicy) {
-        case PLAT_TOPOLOGY_NUMA_FILL:
-            for (uint32_t n = 0; n < nnodes; n++) {
-                for (uint32_t c = 0; c < nproc; c++) {
-                    if (numa_bitmask_isbitset(nodecpus[n], c)) {
-                        cids[cidx++] = c;
-                    }
+    case PLAT_TOPOLOGY_NUMA_FILL:
+        LOG_INFO("using NUMA fill policy. Ignoring hyperthread policy.\n");
+        for (uint32_t n = 0; n < nnodes; n++) {
+            for (uint32_t c = 0; c < nproc; c++) {
+                if (numa_bitmask_isbitset(nodecpus[n], c)) {
+                    cids[cidx++] = c;
                 }
             }
-            break;
-        case PLAT_TOPOLOGY_NUMA_INTERLEAVE:
-            for (uint32_t n = 0; n < nnodes; n++) {
-                cidx = 0;
-                for (uint32_t c = 0; c < nproc; c++) {
-                    if (numa_bitmask_isbitset(nodecpus[n], c)) {
-                        cids[n + (cidx++) * nnodes] = c;
-                    }
+        }
+        break;
+    case PLAT_TOPOLOGY_NUMA_INTERLEAVE:
+        LOG_INFO("using NUMA interleave policy. Ignoring hyperthread policy.\n");
+        for (uint32_t n = 0; n < nnodes; n++) {
+            cidx = 0;
+            for (uint32_t c = 0; c < nproc; c++) {
+                if (numa_bitmask_isbitset(nodecpus[n], c)) {
+                    cids[n + (cidx++) * nnodes] = c;
                 }
             }
-            break;
-        default:
-            return PLAT_ERR_ARGS_INVALID;
+        }
+        break;
+    default:
+        return PLAT_ERR_ARGS_INVALID;
     }
 
     *coreids = cids;
@@ -155,7 +162,7 @@ plat_error_t plat_get_topology(plat_topo_numa_t numapolicy, plat_topo_cores_t co
 
     return PLAT_ERR_OK;
 
-    err_out_1:
+err_out_1:
     for (uint32_t j = 0; j < nnodes; j++) {
         numa_free_cpumask(nodecpus[j]);
     }
@@ -203,7 +210,7 @@ plat_error_t plat_vm_create(const char *path, plat_memobj_t *memobj, size_t size
     fd = shm_open(path, O_CREAT | O_RDWR | O_EXCL, 0666);
     if (fd == -1) {
         if (errno == EEXIST) {
-            fprintf(stderr, "ERROR: shm file '%s' already exist. delete it in /dev/shm\n", path);
+            LOG_ERR("shm file '%s' already exist. delete it in /dev/shm\n", path);
         }
         err = PLAT_ERR_MEMOBJ_CREATE;
         goto err_out_1;
@@ -246,8 +253,7 @@ plat_error_t plat_vm_destroy(plat_memobj_t memobj)
 
     if (plat_mobj->fd != 0) {
         if (shm_unlink(plat_mobj->name)) {
-            fprintf(stderr, "WARNING: could not unline '%s'. Continuing anyway.\n",
-                    plat_mobj->name);
+            LOG_WARN("could not unline '%s'. Continuing anyway.\n", plat_mobj->name);
         }
     }
 
@@ -368,7 +374,6 @@ plat_error_t plat_vm_unmap(void *addr, size_t size)
         return PLAT_ERR_UNMAP_FAILED;
     }
     return PLAT_ERR_OK;
-    ;
 }
 
 
