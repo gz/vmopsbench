@@ -48,6 +48,39 @@ plat_error_t plat_init(void);
 
 /*
  * ================================================================================================
+ * Platform Topology
+ * ================================================================================================
+ */
+
+
+typedef enum {
+    PLAT_TOPOLOGY_NUMA_FILL,
+    PLAT_TOPOLOGY_NUMA_INTERLEAVE,
+} plat_topo_numa_t;
+
+
+typedef enum {
+    PLAT_TOPOLOGY_CORES_FILL,
+    PLAT_TOPOLOGY_CORES_INTERLEAVE,
+} plat_topo_cores_t;
+
+
+/**
+ * @brief gets the platform topology for a specific setting
+ *
+ * @param numapolicy    the NUMA topology filling pattern
+ * @param corepolicy    the core topology filling pattern
+ * @param coreids       array of core ids to be used, ordered by supplied numa/cores
+ * @param ncoreids      the returned number of core ids
+ *
+ * @returns error value
+ */
+plat_error_t plat_get_topology(plat_topo_numa_t numapolicy, plat_topo_cores_t corepolicy,
+                               uint32_t **coreids, uint32_t *ncoreids);
+
+
+/*
+ * ================================================================================================
  * Virtual Memory Operations
  * ================================================================================================
  */
@@ -151,7 +184,7 @@ typedef void *plat_thread_t;
 typedef void *plat_barrier_t;
 
 ///< the run function type
-typedef void* (*plat_thread_fn_t)(void *st);
+typedef void *(*plat_thread_fn_t)(void *st);
 
 
 /**

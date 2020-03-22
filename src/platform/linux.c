@@ -15,7 +15,9 @@
 #include <pthread.h>
 #include <sched.h>
 #include <time.h>
+#include <numa.h>
 
+#include <sys/sysinfo.h>
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <sys/stat.h> /* For mode constants */
@@ -40,6 +42,126 @@ plat_error_t plat_init(void)
     return PLAT_ERR_OK;
 }
 
+
+/*
+ * ================================================================================================
+ * Platform Topology
+ * ================================================================================================
+ */
+
+
+static plat_error_t get_topolocy_no_numa(uint32_t **coreids, uint32_t *ncoreids)
+{
+    uint32_t ncid = get_nprocs();
+    uint32_t *cids = malloc(ncid * sizeof(uint32_t));
+    if (cids == NULL) {
+        return PLAT_ERR_NO_MEM;
+    }
+
+    for (uint32_t i = 0; i < *ncoreids; i++) {
+        cids[i] = i;
+    }
+
+    *coreids = cids;
+    *ncoreids = ncid;
+
+    return PLAT_ERR_OK;
+}
+
+
+/**
+ * @brief gets the platform topology for a specific setting
+ *
+ * @param numapolicy    the NUMA topology filling pattern
+ * @param corepolicy    the core topology filling pattern
+ * @param coreids       array of core ids to be used, ordered by supplied numa/cores
+ * @param ncoreids      the returned number of core ids
+ *
+ * @returns error value
+ */
+plat_error_t plat_get_topology(plat_topo_numa_t numapolicy, plat_topo_cores_t corepolicy,
+                               uint32_t **coreids, uint32_t *ncoreids)
+{
+    if (ncoreids == NULL || coreids == NULL) {
+        return PLAT_ERR_ARGS_INVALID;
+    }
+
+    if (numa_available() == -1) {
+        fprintf(stderr, "WARNING: NUMA not available!\n");
+        return get_topolocy_no_numa(coreids, ncoreids);
+    }
+
+    uint32_t nproc = numa_num_task_cpus();
+    uint32_t nnodes = numa_num_task_nodes();
+
+    printf("+ VMPOS Using %d NUMA nodes and %d cpus in total.\n", nnodes, nproc);
+
+    struct bitmask **nodecpus = malloc(nnodes * sizeof(struct bitmask *));
+    if (nodecpus == NULL) {
+        return PLAT_ERR_NO_MEM;
+    }
+
+    for (uint32_t i = 0; i < nnodes; i++) {
+        nodecpus[i] = numa_allocate_cpumask();
+        if (nodecpus[i] == NULL) {
+            for (uint32_t j = 0; j < i; j++) {
+                numa_free_cpumask(nodecpus[j]);
+            }
+            free(nodecpus);
+            return PLAT_ERR_NO_MEM;
+        }
+
+        if (numa_node_to_cpus(i, nodecpus[i])) {
+            fprintf(stderr, "WARNING: Could not get the CPUs of the node!\n");
+            goto err_out_1;
+        }
+    }
+
+    if (nproc != (uint32_t)get_nprocs()) {
+        fprintf(stderr, "WARNING: numa_num_task_cpus != nproc()\n");
+    }
+
+    uint32_t *cids = malloc(nproc * sizeof(uint32_t));
+    uint32_t cidx = 0;
+
+    (void)(corepolicy);
+
+    switch (numapolicy) {
+        case PLAT_TOPOLOGY_NUMA_FILL:
+            for (uint32_t n = 0; n < nnodes; n++) {
+                for (uint32_t c = 0; c < nproc; c++) {
+                    if (numa_bitmask_isbitset(nodecpus[n], c)) {
+                        cids[cidx++] = c;
+                    }
+                }
+            }
+            break;
+        case PLAT_TOPOLOGY_NUMA_INTERLEAVE:
+            for (uint32_t n = 0; n < nnodes; n++) {
+                cidx = 0;
+                for (uint32_t c = 0; c < nproc; c++) {
+                    if (numa_bitmask_isbitset(nodecpus[n], c)) {
+                        cids[n + (cidx++) * nnodes] = c;
+                    }
+                }
+            }
+            break;
+        default:
+            return PLAT_ERR_ARGS_INVALID;
+    }
+
+    *coreids = cids;
+    *ncoreids = nproc;
+
+    return PLAT_ERR_OK;
+
+    err_out_1:
+    for (uint32_t j = 0; j < nnodes; j++) {
+        numa_free_cpumask(nodecpus[j]);
+    }
+    free(nodecpus);
+    return get_topolocy_no_numa(coreids, ncoreids);
+}
 
 /*
  * ================================================================================================
@@ -338,7 +460,6 @@ plat_error_t plat_thread_cancel(plat_thread_t thread)
  */
 plat_error_t plat_thread_barrier_init(plat_barrier_t *barrier, uint32_t nthreads)
 {
-
     pthread_barrier_t *pbar = malloc(sizeof(pthread_barrier_t));
     if (pbar == NULL) {
         return PLAT_ERR_NO_MEM;
@@ -353,7 +474,6 @@ plat_error_t plat_thread_barrier_init(plat_barrier_t *barrier, uint32_t nthreads
 
     return PLAT_ERR_OK;
 }
-
 
 
 /**
