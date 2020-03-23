@@ -57,7 +57,7 @@ static int parse_cores_list(char *cores, uint32_t **retcoreslist, uint32_t *ncor
             lookahead++;
         }
 
-        if (*lookahead != 0 && *lookahead != ',')  {
+        if (*lookahead != 0 && *lookahead != ',') {
             LOG_ERR("expected a ',' was '%c'\n", *lookahead);
             exit(EXIT_FAILURE);
         }
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
         case 'c':
             parse_cores_list(optarg, &cfg.coreslist, &cfg.corelist_size);
             break;
-        case 'i' :
+        case 'i':
             numa_topology = PLAT_TOPOLOGY_NUMA_INTERLEAVE;
             break;
         case 'm':
@@ -188,10 +188,16 @@ int main(int argc, char *argv[])
         vmops_bench_run_shared_isolated(&cfg);
     } else if (strcmp(cfg.benchmark, "mapunmap-shared-independent") == 0) {
         vmops_bench_run_shared_independent(&cfg);
+    } else if (strcmp(cfg.benchmark, "mapunmap-4k-isolated") == 0) {
+        //vmops_bench_run_4k_isolated(&cfg);
+    } else if (strcmp(cfg.benchmark, "mapunmap-4k-independent") == 0) {
+        vmops_bench_run_4k_independent(&cfg);
     } else if (strcmp(cfg.benchmark, "protect-shared") == 0) {
         vmops_bench_run_protect_shared(&cfg);
     } else if (strcmp(cfg.benchmark, "protect-independent") == 0) {
         vmops_bench_run_protect_independent(&cfg);
+     } else if (strcmp(cfg.benchmark, "protect-4k-independent") == 0) {
+        vmops_bench_run_protect_4k_independent(&cfg);
     } else {
         LOG_ERR("unsupported benchmarch '%s'\n", cfg.benchmark);
     }
