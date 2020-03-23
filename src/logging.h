@@ -68,12 +68,12 @@
             _b, _m, _t, _n, _o)
 
 #define LOG_CSV_HEADER()                                                                          \
-    fprintf(stderr, "===================== BEGIN CSV =====================\n");                   \
-    fprintf(stdout, "thread_id,benchmark,core,ncores,memsize,duration,operations\n");
+    fprintf(stderr, "===================== BEGIN CSV =====================\n");
 
 #define LOG_CSV_FOOTER() \
     fprintf(stderr, "====================== END CSV ======================\n");
 
+// If you modify the CSV format, also change the header-line in scripts/run.sh accordingly:
 #define LOG_CSV(_b, _t, _c, _n, _m, _d, _tpt)                                                     \
     fprintf(stdout, "%d,%s,%d,%d,%zu,%.3f,%zu\n", _t, _b, _c, _n, _m, _d, _tpt);
 
