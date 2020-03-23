@@ -13,10 +13,9 @@ echo never > /sys/kernel/mm/transparent_hugepage/enabled
 rm *.log *.csv /dev/shm/vmops_bench_* || true
 
 for benchmark in "${benchmarks[@]}"; do
+    LOGFILE=${HOSTNAME}_results_${benchmark}.log
+    CSVFILE=${HOSTNAME}_results_${benchmark}.csv
     for memsize in "${memsizes[@]}"; do
-
-        LOGFILE=${HOSTNAME}_results_${benchmark}.log
-        CSVFILE=${HOSTNAME}_results_${benchmark}.csv
         if [ ! -f "$CSVFILE" ]; then
             echo "thread_id,benchmark,core,ncores,memsize,duration,operations" | tee $CSVFILE
         fi
@@ -26,4 +25,5 @@ for benchmark in "${benchmarks[@]}"; do
             (./bin/vmops -p $cores -t $DURATION_MS -m $memsize -b ${benchmark} | tee -a $CSVFILE) 3>&1 1>&2 2>&3 | tee -a $LOGFILE
         done
     done
+    python3 ./scripts/plot.py ${CSVFILE}
 done

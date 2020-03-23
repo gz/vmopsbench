@@ -77,6 +77,6 @@ if __name__ == '__main__':
         sys.exit(1)
 
     df = parse_results(sys.argv[1])
-    print(df)
-    plot_scalability(os.path.basename(sys.argv[1]), df)
+    filename, file_extension = os.path.splitext(sys.argv[1])
+    plot_scalability(filename, df)
     
