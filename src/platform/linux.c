@@ -575,11 +575,26 @@ plat_time_t plat_get_time(void)
 /**
  * @brief converts time in milliseconds to
  *
+ * @param ms    the time in ms to convert to platform time
+ *
  * @returns converted time in plat_time_t
  */
 plat_time_t plat_convert_time(uint32_t ms)
 {
     return (plat_time_t)ms * 1000000UL;
+}
+
+
+/**
+ * @brief converts platform time to milliseconds
+ *
+ * @param time  the platform time
+ *
+ * @returns time in milliseconds
+ */
+double plat_time_to_ms(plat_time_t time)
+{
+    return (double)time / 1000000.0;
 }
 
 
