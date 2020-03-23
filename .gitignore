@@ -58,3 +58,4 @@ bin/*
 *.log
 *.png
 *.pdf
+*.csv
