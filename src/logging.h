@@ -67,4 +67,14 @@
             VMOPS_PRINT_PREFIX COLOR_RESULT "RESULT [[ " RESULT_FMT_STRING " ]]" COLOR_RESET "\n", \
             _b, _m, _t, _n, _o)
 
+#define LOG_CSV_HEADER()                                                                          \
+    fprintf(stdout, "===================== BEGIN CSV =====================\n");                   \
+    fprintf(stdout, "thread_id,benchmark,core,ncores,memsize,duration,operations\n");
+
+#define LOG_CSV_FOOTER() \
+    fprintf(stdout, "====================== END CSV ======================\n");
+
+#define LOG_CSV(_b, _t, _c, _n, _m, _d, _tpt)                                                     \
+    fprintf(stdout, "%d,%s,%d,%d,%zu,%.3f,%zu\n", _t, _b, _c, _n, _m, _d, _tpt);
+
 #endif /* __VMOPS_LOGGING_H_ */
