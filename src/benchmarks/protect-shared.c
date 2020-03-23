@@ -24,6 +24,7 @@ struct bench_run_arg
     uint32_t tid;
     plat_barrier_t barrier;
     size_t count;
+    double duration;
 };
 
 static void *bench_run_fn(void *st)
@@ -43,6 +44,7 @@ static void *bench_run_fn(void *st)
 
     plat_time_t t_current = plat_get_time();
     plat_time_t t_end = t_current + t_delta;
+    plat_time_t t_start = t_current;
 
     while(t_current < t_end) {
         err = plat_vm_protect(addr, args->memsize, PLAT_PERM_READ_ONLY);
@@ -58,12 +60,14 @@ static void *bench_run_fn(void *st)
         t_current = plat_get_time();
         counter++;
     }
+    t_end = plat_get_time();
 
     plat_thread_barrier(args->barrier);
 
-    LOG_INFO("thread %d done. ops = %zu\n", args->tid, counter);
-
     args->count = counter;
+    args->duration = plat_time_to_ms(t_end - t_start);
+
+    LOG_INFO("thread %d done. ops = %zu, time=%.3f\n", args->tid, counter, args->duration);
 
     return NULL;
 }
@@ -146,8 +150,16 @@ void vmops_bench_run_protect_shared(struct vmops_bench_cfg *cfg)
 
     plat_thread_barrier_destroy(barrier);
 
-    LOG_RESULT(cfg->benchmark, cfg->memsize, cfg->time_ms, cfg->corelist_size, total_ops);
     LOG_INFO("Benchmark done. total ops = %zu\n", total_ops);
+
+    LOG_CSV_HEADER();
+    for (uint32_t i = 0; i < cfg->corelist_size; i++) {
+        LOG_CSV(cfg->benchmark, i, cfg->coreslist[i],
+            cfg->corelist_size, cfg->memsize, args[i].duration, args[i].count);
+    }
+    LOG_CSV_FOOTER();
+    LOG_RESULT(cfg->benchmark, cfg->memsize, cfg->time_ms, cfg->corelist_size, total_ops);
+
 
     free(args);
 }

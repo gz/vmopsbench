@@ -13,7 +13,9 @@
 #include "benchmarks.h"
 #include "utils.h"
 
-#define VMOBJ_NAME "/vmops_bench_protect_independent_%d"
+#define ADDRESS_OFFSET (512UL << 30)
+
+#define VMOBJ_NAME "/vmops_bench_isolated_%d"
 
 struct bench_run_arg
 {
@@ -24,6 +26,7 @@ struct bench_run_arg
     uint32_t tid;
     plat_barrier_t barrier;
     size_t count;
+    double duration;
 };
 
 static void *bench_run_fn(void *st)
@@ -36,47 +39,37 @@ static void *bench_run_fn(void *st)
 
     size_t counter = 0 ;
 
-    void *addr;
-    err = plat_vm_map(&addr, args->memsize, args->memobj, 0);
-    if (err != PLAT_ERR_OK) {
-        LOG_ERR("thread %d. failed to map memory!\n", args->tid);
-        exit(EXIT_FAILURE);
-    }
-
     LOG_INFO("thread %d ready.\n", args->tid);
     plat_thread_barrier(args->barrier);
 
 
     plat_time_t t_current = plat_get_time();
     plat_time_t t_end = t_current + t_delta;
+    plat_time_t t_start = t_current;
 
     while(t_current < t_end) {
-        err = plat_vm_protect(addr, args->memsize, PLAT_PERM_READ_ONLY);
+
+        void *addr = (void *)(ADDRESS_OFFSET * (args->tid + 1));
+        err = plat_vm_map_fixed(addr, args->memsize, args->memobj, 0);
         if (err != PLAT_ERR_OK) {
-            LOG_ERR("thread %d. failed to protect memory!\n", args->tid);
-            exit(EXIT_FAILURE);
+            LOG_ERR("thread %d. failed to map memory!\n", args->tid);
         }
-        err = plat_vm_protect(addr, args->memsize, PLAT_PERM_READ_WRITE);
+
+        err = plat_vm_unmap(addr, args->memsize);
         if (err != PLAT_ERR_OK) {
-            LOG_ERR("thread %d. failed to unprotect memory!\n", args->tid);
-            exit(EXIT_FAILURE);
+            LOG_ERR("thread %d. failed to unmap memory!\n", args->tid);
         }
         t_current = plat_get_time();
         counter++;
     }
+    t_end = plat_get_time();
 
     plat_thread_barrier(args->barrier);
-
-    err = plat_vm_unmap(addr, args->memsize);
-    if (err != PLAT_ERR_OK) {
-        printf("failed to unmap!\n");
-    }
-
-    plat_thread_barrier(args->barrier);
-
-    LOG_INFO("thread %d done. ops = %zu\n", args->tid, counter);
 
     args->count = counter;
+    args->duration = plat_time_to_ms(t_end - t_start);
+
+    LOG_INFO("thread %d done. ops = %zu, time=%.3f\n", args->tid, counter, args->duration);
 
     return NULL;
 }
@@ -90,11 +83,11 @@ static void *bench_run_fn(void *st)
  *  - there is a single shared memory region
  *  - calling randomly protect() on pages.
  */
-void vmops_bench_run_protect_independent(struct vmops_bench_cfg *cfg)
+void vmops_bench_run_isolated(struct vmops_bench_cfg *cfg)
 {
     plat_error_t err;
 
-    LOG_INFO("Preparing 'Protect Independent' benchmark.\n");
+    LOG_INFO("Preparing 'MAP/UNMAP Isolated' benchmark.\n");
 
     plat_barrier_t barrier;
     err = plat_thread_barrier_init(&barrier, cfg->corelist_size);
@@ -125,7 +118,6 @@ void vmops_bench_run_protect_independent(struct vmops_bench_cfg *cfg)
             exit(EXIT_FAILURE);
         }
     }
-
     LOG_INFO("creating %d threads\n", cfg->corelist_size);
     for (uint32_t i = 0; i < cfg->corelist_size; i++) {
         LOG_INFO("thread %d on core %d\n", i, cfg->coreslist[i]);
@@ -157,8 +149,16 @@ void vmops_bench_run_protect_independent(struct vmops_bench_cfg *cfg)
 
     plat_thread_barrier_destroy(barrier);
 
-    LOG_RESULT(cfg->benchmark, cfg->memsize, cfg->time_ms, cfg->corelist_size, total_ops);
     LOG_INFO("Benchmark done. total ops = %zu\n", total_ops);
+
+    LOG_CSV_HEADER();
+    for (uint32_t i = 0; i < cfg->corelist_size; i++) {
+        LOG_CSV(cfg->benchmark, i, cfg->coreslist[i],
+            cfg->corelist_size, cfg->memsize, args[i].duration, args[i].count);
+    }
+    LOG_CSV_FOOTER();
+    LOG_RESULT(cfg->benchmark, cfg->memsize, cfg->time_ms, cfg->corelist_size, total_ops);
+
 
     free(args);
 }
