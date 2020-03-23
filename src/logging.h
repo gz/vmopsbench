@@ -47,32 +47,32 @@
 #define VMOPS_PRINT_PREFIX "+VMOPS "
 
 #define LOG_INFO(...)                                                                             \
-    fprintf(stdout, VMOPS_PRINT_PREFIX COLOR_INFO "INFO " COLOR_RESET __VA_ARGS__)
+    fprintf(stderr, VMOPS_PRINT_PREFIX COLOR_INFO "INFO " COLOR_RESET __VA_ARGS__)
 
 #define LOG_WARN(...)                                                                             \
-    fprintf(stdout, VMOPS_PRINT_PREFIX COLOR_WARN "WARN " COLOR_RESET __VA_ARGS__)
+    fprintf(stderr, VMOPS_PRINT_PREFIX COLOR_WARN "WARN " COLOR_RESET __VA_ARGS__)
 
-#define LOG_ERR(...) fprintf(stdout, VMOPS_PRINT_PREFIX COLOR_ERR "ERROR " COLOR_RESET __VA_ARGS__)
+#define LOG_ERR(...) fprintf(stderr, VMOPS_PRINT_PREFIX COLOR_ERR "ERROR " COLOR_RESET __VA_ARGS__)
 
 
-#define LOG_PRINT(...) fprintf(stdout, VMOPS_PRINT_PREFIX __VA_ARGS__)
-#define LOG_PRINT_CONT(...) fprintf(stdout, __VA_ARGS__)
-#define LOG_PRINT_END(...) fprintf(stdout, __VA_ARGS__)
+#define LOG_PRINT(...) fprintf(stderr, VMOPS_PRINT_PREFIX __VA_ARGS__)
+#define LOG_PRINT_CONT(...) fprintf(stderr, __VA_ARGS__)
+#define LOG_PRINT_END(...) fprintf(stderr, __VA_ARGS__)
 
 
 #define RESULT_FMT_STRING "benchmark=%s, memsize=%zu, time=%d, ncores=%d, ops=%zu"
 
 #define LOG_RESULT(_b, _m, _t, _n, _o)                                                             \
-    fprintf(stdout,                                                                                \
+    fprintf(stderr,                                                                                \
             VMOPS_PRINT_PREFIX COLOR_RESULT "RESULT [[ " RESULT_FMT_STRING " ]]" COLOR_RESET "\n", \
             _b, _m, _t, _n, _o)
 
 #define LOG_CSV_HEADER()                                                                          \
-    fprintf(stdout, "===================== BEGIN CSV =====================\n");                   \
+    fprintf(stderr, "===================== BEGIN CSV =====================\n");                   \
     fprintf(stdout, "thread_id,benchmark,core,ncores,memsize,duration,operations\n");
 
 #define LOG_CSV_FOOTER() \
-    fprintf(stdout, "====================== END CSV ======================\n");
+    fprintf(stderr, "====================== END CSV ======================\n");
 
 #define LOG_CSV(_b, _t, _c, _n, _m, _d, _tpt)                                                     \
     fprintf(stdout, "%d,%s,%d,%d,%zu,%.3f,%zu\n", _t, _b, _c, _n, _m, _d, _tpt);
