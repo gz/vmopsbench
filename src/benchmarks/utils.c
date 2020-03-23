@@ -4,3 +4,8 @@
  * Copyright 2020 Reto Achermann
  * SPDX-License-Identifier: GPL-3.0
  */
+
+#include "../platform/platform.h"
+#include "../logging.h"
+#include "utils.h"
+
