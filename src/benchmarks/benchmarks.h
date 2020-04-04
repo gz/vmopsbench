@@ -25,129 +25,46 @@ struct vmops_bench_cfg {
     size_t nmaps;
     uint32_t time_ms;
     bool nounmap;
+    bool shared;
+    bool isolated;
+    bool map4k;
 };
 
-/**
- * @brief runs the vmops benchmark in the isolated configuration
- *
- * @param cfg   the benchmark configuration
- *
- *  - each thread has an independent memory object to be mapped
- *  - each thread maps it in a distinct slot in the root page table
- */
-void vmops_bench_run_isolated(struct vmops_bench_cfg *cfg);
+
+struct vmops_bench_run_arg
+{
+    struct vmops_bench_cfg *cfg;
+    plat_memobj_t memobj;
+    plat_thread_t thread;
+    uint32_t tid;
+    uint32_t coreid;
+    plat_barrier_t barrier;
+    size_t count;
+    double duration;
+};
 
 
 /**
- * @brief runs the vmops benchmark in the concurrent protect configuration
+ * @brief starts the maponly or mapunmap benchmark
  *
  * @param cfg   the benchmark configuration
+ * @param opts  the options for the benchmark
  *
- *  - each thread has an independent memory object to be mapped
- *  - virtual region mapped with default OS policy
+ * @returns 0 success, -1 error
  */
-void vmops_bench_run_independent(struct vmops_bench_cfg *cfg);
-
+int vmpos_bench_run_mapunmap(struct vmops_bench_cfg *cfg,
+                             const char *opts);
 
 /**
- * @brief runs the vmops benchmark in the shared-isolated configuration
+ * @brief starts the page protection benchmark
  *
  * @param cfg   the benchmark configuration
+ * @param opts  the options for the benchmark
  *
- *  - the memory object is shared
- *  - each thread maps it in a distinct slot in the root page table
+ * @returns 0 success, -1 error
  */
-void vmops_bench_run_shared_isolated(struct vmops_bench_cfg *cfg);
-
-
-/**
- * @brief runs the vmops benchmark in the shared-isolated configuration
- *
- * @param cfg   the benchmark configuration
- *
- *  - the memory object is shared
- *  - each thread maps it in a distinct slot in the root page table
- */
-void vmops_bench_run_4k_shared_isolated(struct vmops_bench_cfg *cfg);
-
-
-/**
- * @brief runs the vmops benchmark in the shared-isolated configuration
- *
- * @param cfg   the benchmark configuration
- *
- *  - the memory object is shared
- *  - virtual memory address is allocated using the default OS policy
- */
-void vmops_bench_run_shared_independent(struct vmops_bench_cfg *cfg);
-
-
-/**
- * @brief runs the vmops benchmark in the shared-isolated configuration
- *
- * @param cfg   the benchmark configuration
- *
- *  - the memory object is shared
- *  - each thread maps it in a distinct slot in the root page table
- */
-void vmops_bench_run_4k_shared_independent(struct vmops_bench_cfg *cfg);
-
-
-/**
- * @brief runs the vmops benchmark in the shared-isolated configuration
- *
- * @param cfg   the benchmark configuration
- *
- *  - the memory object is shared
- *  - each thread maps it in a distinct slot in the root page table
- */
-void vmops_bench_run_4k_isolated(struct vmops_bench_cfg *cfg);
-
-
-/**
- * @brief runs the vmops benchmark in the shared-isolated configuration
- *
- * @param cfg   the benchmark configuration
- *
- *  - each thread has its own memory object
- *  - virtual memory address is allocated using the default OS policy
- *  - memory object is mapped using multiple 4k mappings
- */
-void vmops_bench_run_4k_independent(struct vmops_bench_cfg *cfg);
-
-
-/**
- * @brief runs the vmops benchmark in the concurrent protect configuration
- *
- * @param cfg   the benchmark configuration
- *
- *  - there is a single shared memory region
- *  - calling randomly protect() on pages.
- */
-void vmops_bench_run_protect_shared(struct vmops_bench_cfg *cfg);
-
-
-/**
- * @brief runs the vmops benchmark in the concurrent protect configuration
- *
- * @param cfg   the benchmark configuration
- *
- *  - there is a shared memory region per thread
- *  - calling randomly protect() on pages.
- */
-void vmops_bench_run_protect_independent(struct vmops_bench_cfg *cfg);
-
-
-/**
- * @brief runs the vmops benchmark in the concurrent protect configuration
- *
- * @param cfg   the benchmark configuration
- *
- *  - each thread has its own shared memory regoin
- *  - it is mapped using separate 4k mappings
- *  - protect / unprotect one fo these.
- */
-void vmops_bench_run_protect_4k_independent(struct vmops_bench_cfg *cfg);
+int vmops_bench_run_protect(struct vmops_bench_cfg *cfg,
+                              const char *opts);
 
 
 #endif /* __VMOPS_BENCHMARKS_H_ */

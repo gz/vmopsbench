@@ -186,41 +186,26 @@ int main(int argc, char *argv[])
     LOG_PRINT_END(" ]\n");
     LOG_PRINT("==========================================================================\n");
 
-    // run the benchmark
-    if (strcmp(cfg.benchmark, "mapunmap-isolated") == 0) {
-        vmops_bench_run_isolated(&cfg);
-    } else if (strcmp(cfg.benchmark, "mapunmap-independent") == 0) {
-        vmops_bench_run_independent(&cfg);
-    } else if (strcmp(cfg.benchmark, "mapunmap-shared-isolated") == 0) {
-        vmops_bench_run_shared_isolated(&cfg);
-    } else if (strcmp(cfg.benchmark, "mapunmap-shared-independent") == 0) {
-        vmops_bench_run_shared_independent(&cfg);
-    } else if (strcmp(cfg.benchmark, "mapunmap-4k-isolated") == 0) {
-        // vmops_bench_run_4k_isolated(&cfg);
-    } else if (strcmp(cfg.benchmark, "mapunmap-4k-independent") == 0) {
-        vmops_bench_run_4k_independent(&cfg);
-    } else if (strcmp(cfg.benchmark, "maponly-4k-shared-isolated") == 0) {
+    // select the benchmark to be run
+
+    int r = 0;
+    if (strncmp(cfg.benchmark, "mapunmap", 8) == 0) {
+        /* map and unmap of memory */
+        r = vmpos_bench_run_mapunmap(&cfg, cfg.benchmark + 8);
+    } else if (strncmp(cfg.benchmark, "maponly", 7) == 0) {
+        /* map only benchmark */
         cfg.nounmap = true;
-        vmops_bench_run_4k_shared_isolated(&cfg);
-    } else if (strcmp(cfg.benchmark, "maponly-shared-isolated") == 0) {
-        cfg.nounmap = true;
-        vmops_bench_run_shared_isolated(&cfg);
-    } else if (strcmp(cfg.benchmark, "maponly-shared") == 0) {
-        cfg.nounmap = true;
-        vmops_bench_run_shared_independent(&cfg);
-    } else if (strcmp(cfg.benchmark, "maponly-4k-shared") == 0) {
-        cfg.nounmap = true;
-        vmops_bench_run_4k_shared_independent(&cfg);
-    } else if (strcmp(cfg.benchmark, "protect-shared") == 0) {
-        vmops_bench_run_protect_shared(&cfg);
-    } else if (strcmp(cfg.benchmark, "protect-independent") == 0) {
-        vmops_bench_run_protect_independent(&cfg);
-    } else if (strcmp(cfg.benchmark, "protect-4k-independent") == 0) {
-        vmops_bench_run_protect_4k_independent(&cfg);
+        r = vmpos_bench_run_mapunmap(&cfg, cfg.benchmark + 7);
+    } else if (strncmp(cfg.benchmark, "protect", 7) == 0) {
+        /* protection benchmark */
+        r = vmops_bench_run_protect(&cfg, cfg.benchmark + 7);
     } else {
         LOG_ERR("unsupported benchmarch '%s'\n", cfg.benchmark);
     }
 
+    if (r) {
+        LOG_ERR("benchmark '%s' failed.\n", cfg.benchmark);
+    }
 
     free(cfg.coreslist);
 
