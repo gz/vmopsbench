@@ -62,7 +62,7 @@ static plat_error_t get_topolocy_no_numa(uint32_t **coreids, uint32_t *ncoreids)
         return PLAT_ERR_NO_MEM;
     }
 
-    for (uint32_t i = 0; i < *ncoreids; i++) {
+    for (uint32_t i = 0; i < ncid; i++) {
         cids[i] = i;
     }
 
