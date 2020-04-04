@@ -45,7 +45,7 @@ int vmops_utils_parse_options(const char *opts, struct vmops_bench_cfg *cfg)
         } else if (strncmp(current, "-independent", 12) == 0) {
             current += 12;
             independent = true;
-        } else if (strncmp(current, "-4k", 3)) {
+        } else if (strncmp(current, "-4k", 3) == 0) {
             current += 3;
             map4k = true;
         } else if (strncmp(current, "-isolated", 9) == 0) {
@@ -83,10 +83,13 @@ int vmops_utils_parse_options(const char *opts, struct vmops_bench_cfg *cfg)
  */
 char *vmops_utils_print_options(struct vmops_bench_cfg *cfg)
 {
-    if (cfg->shared) {
-        return "foobar2";
-    }
-    return "foobar";
+    static char optbuf[256];
+
+    snprintf(optbuf, sizeof(optbuf), "%s%s, %s, %s", cfg->nounmap ? "nounmap, " : "",
+             cfg->shared ? "shared" : "independent", cfg->isolated ? "isolated" : "default",
+             cfg->map4k ? "many 4k mappings" : "one large mapping" );
+
+    return optbuf;
 }
 
 
@@ -212,7 +215,7 @@ err_out:
  */
 int vmops_utils_cleanup_args(struct vmops_bench_run_arg *args)
 {
-    if(args == NULL || args->cfg == NULL) {
+    if (args == NULL || args->cfg == NULL) {
         return -1;
     }
 
@@ -221,7 +224,7 @@ int vmops_utils_cleanup_args(struct vmops_bench_run_arg *args)
 
     struct vmops_bench_run_arg *current = args;
 
-    while(current->tid != (uint32_t)-1) {
+    while (current->tid != (uint32_t)-1) {
         LOG_INFO("cleaning up args for thread %d\n", current->tid);
         if (current->memobj != memobj) {
             plat_vm_destroy(current->memobj);
