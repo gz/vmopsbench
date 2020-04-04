@@ -119,6 +119,7 @@ static void *bench_run_4k_fn(void *st)
                 LOG_ERR("thread %d. failed to map memory!\n", args->tid);
                 goto cleanup_and_exit;
             }
+            addrs[i] = addr;
 
             addr = (void *)((uintptr_t)addr + PAGE_SIZE);
         }
@@ -146,12 +147,12 @@ static void *bench_run_4k_fn(void *st)
             size_t idx = (page++) % nmaps;
             err = plat_vm_unmap(addrs[idx], PAGE_SIZE);
             if (err != PLAT_ERR_OK) {
-                LOG_ERR("thread %d. failed to protect memory!\n", args->tid);
+                LOG_ERR("thread %d. failed to unmap memory! %p\n", args->tid, addrs[idx]);
                 goto cleanup_and_exit;
             }
             err = plat_vm_map_fixed(addrs[idx], PAGE_SIZE, args->memobj, idx * PAGE_SIZE);
             if (err != PLAT_ERR_OK) {
-                LOG_ERR("thread %d. failed to unprotect memory!\n", args->tid);
+                LOG_ERR("thread %d. failed to map fixed memory! %p\n", args->tid, addrs[idx]);
                 goto cleanup_and_exit;
             }
             t_current = plat_get_time();
@@ -163,12 +164,12 @@ static void *bench_run_4k_fn(void *st)
             size_t idx = (page++) % nmaps;
             err = plat_vm_unmap(addrs[idx], PAGE_SIZE);
             if (err != PLAT_ERR_OK) {
-                LOG_ERR("thread %d. failed to protect memory!\n", args->tid);
+                LOG_ERR("thread %d. failed to unmap memory! %p\n", args->tid, addrs[idx]);
                 goto cleanup_and_exit;
             }
             err = plat_vm_map(&addrs[idx], PAGE_SIZE, args->memobj, idx * PAGE_SIZE);
             if (err != PLAT_ERR_OK) {
-                LOG_ERR("thread %d. failed to unprotect memory!\n", args->tid);
+                LOG_ERR("thread %d. failed to map memory!\n", args->tid);
                 goto cleanup_and_exit;
             }
             t_current = plat_get_time();
@@ -287,7 +288,7 @@ static void *bench_run_nounmap_4k_fn(void *st)
 
             err = plat_vm_map_fixed(addr, PAGE_SIZE, args->memobj, idx * PAGE_SIZE);
             if (err != PLAT_ERR_OK) {
-                LOG_ERR("thread %d. failed to unprotect memory!\n", args->tid);
+                LOG_ERR("thread %d. failed to map memory!\n", args->tid);
                 goto cleanup_and_exit;
             }
             addr = (void *)((uintptr_t)addr + PAGE_SIZE);
@@ -301,7 +302,7 @@ static void *bench_run_nounmap_4k_fn(void *st)
             void *addr;
             err = plat_vm_map(&addr, PAGE_SIZE, args->memobj, idx * PAGE_SIZE);
             if (err != PLAT_ERR_OK) {
-                LOG_ERR("thread %d. failed to unprotect memory!\n", args->tid);
+                LOG_ERR("thread %d. failed to map memory!\n", args->tid);
                 goto cleanup_and_exit;
             }
             t_current = plat_get_time();

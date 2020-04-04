@@ -103,6 +103,7 @@ static void *bench_run_4k_fn(void *st)
                 LOG_ERR("thread %d. failed to map memory!\n", args->tid);
                 goto cleanup_and_exit;
             }
+            addrs[i] = addr;
 
             addr = (void *)((uintptr_t)addr + PAGE_SIZE);
         }
