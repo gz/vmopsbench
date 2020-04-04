@@ -325,6 +325,7 @@ plat_error_t plat_vm_map_fixed(void *addr, size_t size, plat_memobj_t memobj, of
     void *map_addr;
     map_addr = mmap(addr, size, PROT_READ | PROT_WRITE, flags, plat_mobj->fd, offset);
     if (map_addr == MAP_FAILED) {
+        LOG_ERR("Error = (%d) %s \n", errno, strerror(errno));
         return PLAT_ERR_MAP_FAILED;
     }
 

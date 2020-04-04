@@ -16,8 +16,12 @@
 #include "logging.h"
 #include "benchmarks/benchmarks.h"
 
-static struct vmops_bench_cfg cfg
-    = { .memsize = 4096, .coreslist = NULL, .corelist_size = 0, .time_ms = 10 };
+static struct vmops_bench_cfg cfg = { .memsize = 4096,
+                                      .coreslist = NULL,
+                                      .corelist_size = 0,
+                                      .time_ms = 10,
+                                      .nounmap = false,
+                                      .nmaps = 1 };
 
 
 static int parse_cores_list(char *cores, uint32_t **retcoreslist, uint32_t *ncores)
@@ -108,7 +112,7 @@ int main(int argc, char *argv[])
     plat_init();
 
     int opt;
-    while ((opt = getopt(argc, argv, "ip:t:c:m:b:h")) != -1) {
+    while ((opt = getopt(argc, argv, "ip:t:c:m:n:b:h")) != -1) {
         switch (opt) {
         case 'p':
             ncores = strtoul(optarg, NULL, 10);
@@ -121,6 +125,9 @@ int main(int argc, char *argv[])
             break;
         case 'm':
             cfg.memsize = strtoul(optarg, NULL, 10);
+            break;
+        case 'n':
+            cfg.nmaps = strtoul(optarg, NULL, 10);
             break;
         case 'b':
             cfg.benchmark = optarg;
@@ -189,14 +196,26 @@ int main(int argc, char *argv[])
     } else if (strcmp(cfg.benchmark, "mapunmap-shared-independent") == 0) {
         vmops_bench_run_shared_independent(&cfg);
     } else if (strcmp(cfg.benchmark, "mapunmap-4k-isolated") == 0) {
-        //vmops_bench_run_4k_isolated(&cfg);
+        // vmops_bench_run_4k_isolated(&cfg);
     } else if (strcmp(cfg.benchmark, "mapunmap-4k-independent") == 0) {
         vmops_bench_run_4k_independent(&cfg);
+    } else if (strcmp(cfg.benchmark, "maponly-4k-shared-isolated") == 0) {
+        cfg.nounmap = true;
+        vmops_bench_run_4k_shared_isolated(&cfg);
+    } else if (strcmp(cfg.benchmark, "maponly-shared-isolated") == 0) {
+        cfg.nounmap = true;
+        vmops_bench_run_shared_isolated(&cfg);
+    } else if (strcmp(cfg.benchmark, "maponly-shared") == 0) {
+        cfg.nounmap = true;
+        vmops_bench_run_shared_independent(&cfg);
+    } else if (strcmp(cfg.benchmark, "maponly-4k-shared") == 0) {
+        cfg.nounmap = true;
+        vmops_bench_run_4k_shared_independent(&cfg);
     } else if (strcmp(cfg.benchmark, "protect-shared") == 0) {
         vmops_bench_run_protect_shared(&cfg);
     } else if (strcmp(cfg.benchmark, "protect-independent") == 0) {
         vmops_bench_run_protect_independent(&cfg);
-     } else if (strcmp(cfg.benchmark, "protect-4k-independent") == 0) {
+    } else if (strcmp(cfg.benchmark, "protect-4k-independent") == 0) {
         vmops_bench_run_protect_4k_independent(&cfg);
     } else {
         LOG_ERR("unsupported benchmarch '%s'\n", cfg.benchmark);
