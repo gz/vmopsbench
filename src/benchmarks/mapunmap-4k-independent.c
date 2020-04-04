@@ -158,9 +158,6 @@ void vmops_bench_run_4k_independent(struct vmops_bench_cfg *cfg)
         }
     }
 
-
-
-
     size_t total_ops = 0;
     for (uint32_t i = 0; i < cfg->corelist_size; i++) {
         if (args[i].thread != NULL) {
