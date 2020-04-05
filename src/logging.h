@@ -52,7 +52,9 @@
 #define LOG_WARN(...)                                                                             \
     fprintf(stderr, VMOPS_PRINT_PREFIX COLOR_WARN "WARN " COLOR_RESET __VA_ARGS__)
 
-#define LOG_ERR(...) fprintf(stderr, VMOPS_PRINT_PREFIX COLOR_ERR "ERROR " COLOR_RESET __VA_ARGS__)
+#define xstr(a) str(a)
+#define str(a) #a
+#define LOG_ERR(...) fprintf(stderr, VMOPS_PRINT_PREFIX COLOR_ERR "ERROR " COLOR_RESET __FILE__ ":" xstr(__LINE__) " " __VA_ARGS__)
 
 
 #define LOG_PRINT(...) fprintf(stderr, VMOPS_PRINT_PREFIX __VA_ARGS__)

@@ -49,13 +49,13 @@ static void *bench_run_fn(void *st)
         while (t_current < t_end) {
             err = plat_vm_map_fixed(addr, memsize, args->memobj, 0);
             if (err != PLAT_ERR_OK) {
-                LOG_ERR("thread %d. failed to map memory!\n", args->tid);
+                LOG_ERR("thread %d. failed to map memory ops=%zu!\n", args->tid, counter);
                 return NULL;
             }
 
             err = plat_vm_unmap(addr, memsize);
             if (err != PLAT_ERR_OK) {
-                LOG_ERR("thread %d. failed to unmap memory!\n", args->tid);
+                LOG_ERR("thread %d. failed to unmap memory ops=%zu!\n", args->tid, counter);
                 return NULL;
             }
 
@@ -67,13 +67,13 @@ static void *bench_run_fn(void *st)
             void *addr;
             err = plat_vm_map(&addr, memsize, args->memobj, 0);
             if (err != PLAT_ERR_OK) {
-                LOG_ERR("thread %d. failed to map memory!\n", args->tid);
+                LOG_ERR("thread %d. failed to map memory ops=%zu!\n", args->tid, counter);
                 return NULL;
             }
 
             err = plat_vm_unmap(addr, memsize);
             if (err != PLAT_ERR_OK) {
-                LOG_ERR("thread %d. failed to unmap memory!\n", args->tid);
+                LOG_ERR("thread %d. failed to unmap memory ops=%zu!\n", args->tid, counter);
                 return NULL;
             }
 
@@ -116,7 +116,7 @@ static void *bench_run_4k_fn(void *st)
         for (size_t i = 0; i < nmaps; i++) {
             err = plat_vm_map_fixed(addr, cfg->memsize, args->memobj, i * PAGE_SIZE);
             if (err != PLAT_ERR_OK) {
-                LOG_ERR("thread %d. failed to map memory!\n", args->tid);
+                LOG_ERR("thread %d. failed to map memory i=%zu!\n", args->tid, i);
                 goto cleanup_and_exit;
             }
             addrs[i] = addr;
@@ -127,7 +127,7 @@ static void *bench_run_4k_fn(void *st)
         for (size_t i = 0; i < nmaps; i++) {
             err = plat_vm_map(&addrs[i], PAGE_SIZE, args->memobj, i * PAGE_SIZE);
             if (err != PLAT_ERR_OK) {
-                LOG_ERR("thread %d. failed to map memory!\n", args->tid);
+                LOG_ERR("thread %d. failed to map memory i=%zu!\n", args->tid, i);
                 goto cleanup_and_exit;
             }
         }
@@ -302,7 +302,7 @@ static void *bench_run_nounmap_4k_fn(void *st)
             void *addr;
             err = plat_vm_map(&addr, PAGE_SIZE, args->memobj, idx * PAGE_SIZE);
             if (err != PLAT_ERR_OK) {
-                LOG_ERR("thread %d. failed to map memory!\n", args->tid);
+                LOG_ERR("thread %d. failed to map memory counter=%zu!\n", args->tid, counter);
                 goto cleanup_and_exit;
             }
             t_current = plat_get_time();
