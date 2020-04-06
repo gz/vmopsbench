@@ -29,6 +29,7 @@ struct vmops_bench_cfg {
     bool isolated;
     bool map4k;
     bool maphuge;
+    bool numainterleave;
 };
 
 

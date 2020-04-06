@@ -25,7 +25,8 @@ static struct vmops_bench_cfg cfg = { .memsize = 4096,
                                       .map4k = false,
                                       .maphuge = false,
                                       .isolated = false,
-                                      .shared = true };
+                                      .shared = true,
+                                      .numainterleave = false };
 
 
 static int parse_cores_list(char *cores, uint32_t **retcoreslist, uint32_t *ncores)
@@ -129,6 +130,7 @@ int main(int argc, char *argv[])
             break;
         case 'i':
             numa_topology = PLAT_TOPOLOGY_NUMA_INTERLEAVE;
+            cfg.numainterleave = true;
             break;
         case 'm':
             cfg.memsize = strtoul(optarg, NULL, 10);

@@ -121,8 +121,7 @@ void vmops_utils_print_csv(struct vmops_bench_run_arg *args, size_t total_ops)
             exit(EXIT_FAILURE);
         }
 
-        LOG_CSV(cfg->benchmark, i, cfg->coreslist[i], cfg->corelist_size, cfg->memsize,
-                args[i].duration, args[i].count);
+        LOG_CSV(cfg, i, args[i].duration, args[i].count);
     }
     LOG_CSV_FOOTER();
     LOG_RESULT(cfg->benchmark, cfg->memsize, cfg->time_ms, cfg->corelist_size, total_ops);

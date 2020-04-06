@@ -54,7 +54,9 @@
 
 #define xstr(a) str(a)
 #define str(a) #a
-#define LOG_ERR(...) fprintf(stderr, VMOPS_PRINT_PREFIX COLOR_ERR "ERROR " COLOR_RESET __FILE__ ":" xstr(__LINE__) " " __VA_ARGS__)
+#define LOG_ERR(...)                                                                              \
+    fprintf(stderr, VMOPS_PRINT_PREFIX COLOR_ERR "ERROR " COLOR_RESET __FILE__                    \
+                                                 ":" xstr(__LINE__) " " __VA_ARGS__)
 
 
 #define LOG_PRINT(...) fprintf(stderr, VMOPS_PRINT_PREFIX __VA_ARGS__)
@@ -72,11 +74,18 @@
 #define LOG_CSV_HEADER()                                                                          \
     fprintf(stderr, "===================== BEGIN CSV =====================\n");
 
-#define LOG_CSV_FOOTER() \
+#define LOG_CSV_FOOTER()                                                                          \
     fprintf(stderr, "====================== END CSV ======================\n");
 
 // If you modify the CSV format, also change the header-line in scripts/run.sh accordingly:
-#define LOG_CSV(_b, _t, _c, _n, _m, _d, _tpt)                                                     \
-    fprintf(stdout, "%d,%s,%d,%d,%zu,%.3f,%zu\n", _t, _b, _c, _n, _m, _d, _tpt);
+#define LOG_CSV(_cfg, _t, _d, _tpt)                                                               \
+    fprintf(stdout, "%d,%s,%d,%d,%zu,%s,%s,%s,%s,%s,%.3f,%zu\n", _t, (_cfg)->benchmark,           \
+            (_cfg)->coreslist[_t], (_cfg)->corelist_size, (_cfg)->memsize,                        \
+            ((_cfg)->numainterleave ? "numainterleave" : "numafill"),                             \
+            ((_cfg)->map4k ? "smallmappings" : "onelargemap"),                                    \
+            ((_cfg)->maphuge ? "hugepages" : "basepages"),                                        \
+            ((_cfg)->shared ? "shared-memobj" : "independent-memobj"),                            \
+            ((_cfg)->isolated ? "isolated" : "default"), _d, _tpt);
+
 
 #endif /* __VMOPS_LOGGING_H_ */
