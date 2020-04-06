@@ -17,6 +17,8 @@ declare -a numa=("" "-i")
 #echo never > /sys/kernel/mm/transparent_hugepage/enabled
 rm *.log *.csv *.png *.pdf /dev/shm/vmops_bench_* || true
 sudo sysctl -w vm.max_map_count=50000000
+echo 1024 | sudo tee  /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+
 
 for b in "${bench[@]}"; do
     for i in "${isolation[@]}"; do
