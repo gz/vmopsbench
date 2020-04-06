@@ -44,7 +44,7 @@ plat_error_t plat_init(void)
 {
     LOG_PRINT("Initializing VMOPS bench on Linux\n");
     LOG_INFO("hint: reserve hugepages '/sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages'\n");
-    LOG_INFO("hint: allow more mappings 'sysctl -w vm.max_map_count=2000000000'");
+    LOG_INFO("hint: allow more mappings 'sysctl -w vm.max_map_count=2000000000'\n");
 
     return PLAT_ERR_OK;
 }
@@ -264,9 +264,9 @@ plat_error_t plat_vm_destroy(plat_memobj_t memobj)
     struct plat_memobj *plat_mobj = (struct plat_memobj *)memobj;
 
     if (plat_mobj->fd != 0) {
-        if (shm_unlink(plat_mobj->name)) {
-            LOG_WARN("could not unline '%s'. Continuing anyway.\n", plat_mobj->name);
-        }
+        // if (shm_unlink(plat_mobj->name)) {
+        //     LOG_WARN("could not unline '%s'. Continuing anyway.\n", plat_mobj->name);
+        // }
     }
     memset(plat_mobj, 0, sizeof(struct plat_memobj));
     free(plat_mobj);
