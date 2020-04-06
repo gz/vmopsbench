@@ -29,9 +29,9 @@ static void *bench_run_fn(void *st)
     void *addr;
     if (cfg->isolated) {
         addr = utils_vmops_get_map_address(args->tid);
-        err = plat_vm_map_fixed(addr, cfg->memsize, args->memobj, 0);
+        err = plat_vm_map_fixed(addr, cfg->memsize, args->memobj, 0, cfg->maphuge);
     } else {
-        err = plat_vm_map(&addr, cfg->memsize, args->memobj, 0);
+        err = plat_vm_map(&addr, cfg->memsize, args->memobj, 0, cfg->maphuge);
     }
 
     if (err != PLAT_ERR_OK) {
@@ -98,7 +98,7 @@ static void *bench_run_4k_fn(void *st)
     if (cfg->isolated) {
         void *addr = utils_vmops_get_map_address(args->tid);
         for (size_t i = 0; i < nmaps; i++) {
-            err = plat_vm_map_fixed(addr, cfg->memsize, args->memobj, i * PAGE_SIZE);
+            err = plat_vm_map_fixed(addr, cfg->memsize, args->memobj, i * PAGE_SIZE, cfg->maphuge);
             if (err != PLAT_ERR_OK) {
                 LOG_ERR("thread %d. failed to map memory!\n", args->tid);
                 goto cleanup_and_exit;
@@ -109,7 +109,7 @@ static void *bench_run_4k_fn(void *st)
         }
     } else {
         for (size_t i = 0; i < nmaps; i++) {
-            err = plat_vm_map(&addrs[i], PAGE_SIZE, args->memobj, i * PAGE_SIZE);
+            err = plat_vm_map(&addrs[i], PAGE_SIZE, args->memobj, i * PAGE_SIZE, cfg->maphuge);
             if (err != PLAT_ERR_OK) {
                 LOG_ERR("thread %d. failed to map memory!\n", args->tid);
                 goto cleanup_and_exit;

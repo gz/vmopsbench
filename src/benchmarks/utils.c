@@ -163,7 +163,7 @@ int vmops_utils_prepare_args(struct vmops_bench_cfg *cfg, struct vmops_bench_run
 
     if (cfg->shared) {
         plat_memobj_t memobj;
-        err = plat_vm_create(VMOBJ_NAME_SHARED, &memobj, cfg->memsize);
+        err = plat_vm_create(VMOBJ_NAME_SHARED, &memobj, cfg->memsize, cfg->maphuge);
         if (err != PLAT_ERR_OK) {
             LOG_ERR("creation of shared memory object failed!\n");
             goto err_out;
@@ -176,7 +176,7 @@ int vmops_utils_prepare_args(struct vmops_bench_cfg *cfg, struct vmops_bench_run
 
         for (uint32_t i = 0; i < cfg->corelist_size; i++) {
             snprintf(pathbuf, sizeof(pathbuf), VMOBJ_NAME_INDEPENDENT, cfg->coreslist[i]);
-            err = plat_vm_create(pathbuf, &args[i].memobj, cfg->memsize);
+            err = plat_vm_create(pathbuf, &args[i].memobj, cfg->memsize, cfg->maphuge);
             if (err != PLAT_ERR_OK) {
                 LOG_ERR("creation of shared memory object failed! [%d / %d]\n", i,
                         cfg->corelist_size);

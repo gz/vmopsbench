@@ -9,8 +9,13 @@
 #define __VMOPS_PLATFORM_H_ 1
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <fcntl.h> /* For off_t constants */
+
+
+#define PLAT_ARCH_BASE_PAGE_SIZE (1 << 12)
+#define PLAT_ARCH_HUGE_PAGE_SIZE (1 << 21)
 
 /*
  * ================================================================================================
@@ -96,10 +101,11 @@ typedef void *plat_memobj_t;
  * @param path      the name/path of the memobj
  * @param memobj    returns a pointer to the created memory object
  * @param size      the maximum size for the memory object
+ * @param huge      use huge pages for this memory object
  *
  * @returns error value
  */
-plat_error_t plat_vm_create(const char *path, plat_memobj_t *memobj, size_t size);
+plat_error_t plat_vm_create(const char *path, plat_memobj_t *memobj, size_t size, bool huge);
 
 
 /**
@@ -119,10 +125,11 @@ plat_error_t plat_vm_destroy(plat_memobj_t memobj);
  * @param size      the size of the mapping to be created
  * @param memobj    the backing memory object for this mapping
  * @param offset    the offset into the memory object
+ * @param huge      use a huge page mapping
  *
  * @returns returned error value
  */
-plat_error_t plat_vm_map(void **addr, size_t size, plat_memobj_t memobj, off_t offset);
+plat_error_t plat_vm_map(void **addr, size_t size, plat_memobj_t memobj, off_t offset, bool huge);
 
 
 /**
@@ -132,10 +139,12 @@ plat_error_t plat_vm_map(void **addr, size_t size, plat_memobj_t memobj, off_t o
  * @param size      the size of the mapping to be created
  * @param memobj    the backing memory object for this mapping
  * @param offset    the offset into the memory object
+ * @param huge      use a huge page mapping
  *
  * @returns returned error value
  */
-plat_error_t plat_vm_map_fixed(void *addr, size_t size, plat_memobj_t memobj, off_t offset);
+plat_error_t plat_vm_map_fixed(void *addr, size_t size, plat_memobj_t memobj, off_t offset,
+                               bool huge);
 
 
 /**

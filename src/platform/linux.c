@@ -17,6 +17,7 @@
 #include <time.h>
 #include <numa.h>
 
+#include <linux/memfd.h>
 #include <sys/sysinfo.h>
 #include <sys/types.h>
 #include <sys/mman.h>
@@ -26,6 +27,9 @@
 #include "platform.h"
 #include "../logging.h"
 
+
+
+#define MAP_HUGE_2MB    (21 << MAP_HUGE_SHIFT)
 
 /*
  * ================================================================================================
@@ -40,6 +44,9 @@
 plat_error_t plat_init(void)
 {
     LOG_PRINT("Initializing VMOPS bench on Linux\n");
+    LOG_INFO("hint: reserve hugepages '/sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages'\n");
+    LOG_INFO("hint: allow more mappings 'sysctl -w vm.max_map_count=2000000000'");
+
     return PLAT_ERR_OK;
 }
 
@@ -190,10 +197,11 @@ struct plat_memobj {
  * @param path      the name/path of the memobj
  * @param memobj    returns a pointer to the created memory object
  * @param size      the maximum size for the memory object
+ * @param huge      use huge pages for this memory object
  *
  * @returns error value
  */
-plat_error_t plat_vm_create(const char *path, plat_memobj_t *memobj, size_t size)
+plat_error_t plat_vm_create(const char *path, plat_memobj_t *memobj, size_t size, bool huge)
 {
     plat_error_t err = PLAT_ERR_OK;
 
@@ -206,8 +214,15 @@ plat_error_t plat_vm_create(const char *path, plat_memobj_t *memobj, size_t size
         return PLAT_ERR_NO_MEM;
     }
 
+    int flags = 0;
+    if (huge) {
+        flags |= MFD_HUGETLB | MFD_HUGE_2MB;
+    }
+
+
+
     int fd = -1;
-    fd = shm_open(path, O_CREAT | O_RDWR | O_EXCL, 0666);
+    fd = memfd_create(path, flags);
     if (fd == -1) {
         if (errno == EEXIST) {
             LOG_ERR("shm file '%s' already exist. delete it in /dev/shm\n", path);
@@ -255,8 +270,8 @@ plat_error_t plat_vm_destroy(plat_memobj_t memobj)
         if (shm_unlink(plat_mobj->name)) {
             LOG_WARN("could not unline '%s'. Continuing anyway.\n", plat_mobj->name);
         }
-    }
 
+    }
     memset(plat_mobj, 0, sizeof(struct plat_memobj));
     free(plat_mobj);
 
@@ -271,10 +286,11 @@ plat_error_t plat_vm_destroy(plat_memobj_t memobj)
  * @param size      the size of the mapping to be created
  * @param memobj    the backing memory object for this mapping
  * @param offset    the offset into the memory object
+ * @param huge      use a huge page mapping
  *
  * @returns returned error value
  */
-plat_error_t plat_vm_map(void **addr, size_t size, plat_memobj_t memobj, off_t offset)
+plat_error_t plat_vm_map(void **addr, size_t size, plat_memobj_t memobj, off_t offset, bool huge)
 {
     struct plat_memobj *plat_mobj = (struct plat_memobj *)memobj;
     if (plat_mobj->fd == 0 || plat_mobj->size < offset + size) {
@@ -286,6 +302,10 @@ plat_error_t plat_vm_map(void **addr, size_t size, plat_memobj_t memobj, off_t o
     }
 
     int flags = MAP_SHARED | MAP_POPULATE;
+
+    if (huge) {
+        flags |= MAP_HUGETLB | MAP_HUGE_2MB;
+    }
 
     void *map_addr;
     map_addr = mmap(NULL, size, PROT_READ | PROT_WRITE, flags, plat_mobj->fd, offset);
@@ -306,10 +326,12 @@ plat_error_t plat_vm_map(void **addr, size_t size, plat_memobj_t memobj, off_t o
  * @param size      the size of the mapping to be created
  * @param memobj    the backing memory object for this mapping
  * @param offset    the offset into the memory object
+ * @param huge      use a huge page mapping
  *
  * @returns returned error value
  */
-plat_error_t plat_vm_map_fixed(void *addr, size_t size, plat_memobj_t memobj, off_t offset)
+plat_error_t plat_vm_map_fixed(void *addr, size_t size, plat_memobj_t memobj, off_t offset,
+                               bool huge)
 {
     struct plat_memobj *plat_mobj = (struct plat_memobj *)memobj;
     if (plat_mobj->fd == 0 || plat_mobj->size < offset + size) {
@@ -321,6 +343,10 @@ plat_error_t plat_vm_map_fixed(void *addr, size_t size, plat_memobj_t memobj, of
     }
 
     int flags = MAP_SHARED | MAP_POPULATE | MAP_FIXED;
+
+    if (huge) {
+        flags |= MAP_HUGETLB | MAP_HUGE_2MB;
+    }
 
     void *map_addr;
     map_addr = mmap(addr, size, PROT_READ | PROT_WRITE, flags, plat_mobj->fd, offset);
