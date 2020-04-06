@@ -21,7 +21,11 @@ static struct vmops_bench_cfg cfg = { .memsize = 4096,
                                       .corelist_size = 0,
                                       .time_ms = 10,
                                       .nounmap = false,
-                                      .nmaps = 1 };
+                                      .nmaps = 1,
+                                      .map4k = false,
+                                      .maphuge = false,
+                                      .isolated = false,
+                                      .shared = true };
 
 
 static int parse_cores_list(char *cores, uint32_t **retcoreslist, uint32_t *ncores)
@@ -112,8 +116,11 @@ int main(int argc, char *argv[])
     plat_init();
 
     int opt;
-    while ((opt = getopt(argc, argv, "ip:t:c:m:n:b:h")) != -1) {
+    while ((opt = getopt(argc, argv, "lip:t:c:m:n:b:h")) != -1) {
         switch (opt) {
+        case 'l':
+            cfg.maphuge = true;
+            break;
         case 'p':
             ncores = strtoul(optarg, NULL, 10);
             break;
@@ -174,6 +181,11 @@ int main(int argc, char *argv[])
         LOG_WARN("estimate total required memory > 32GB!\n");
     }
 
+    if (cfg.maphuge && cfg.memsize < PLAT_ARCH_HUGE_PAGE_SIZE) {
+        LOG_WARN("increasing memsize to PLAT_ARCH_HUGE_PAGE_SIZE=%d\n", PLAT_ARCH_HUGE_PAGE_SIZE);
+        cfg.memsize = PLAT_ARCH_HUGE_PAGE_SIZE;
+    }
+
     LOG_PRINT("==========================================================================\n");
     LOG_PRINT("benchmark: %s\n", cfg.benchmark);
     LOG_PRINT("memsize:   %zu\n", cfg.memsize);
@@ -200,7 +212,7 @@ int main(int argc, char *argv[])
         /* protection benchmark */
         r = vmops_bench_run_protect(&cfg, cfg.benchmark + 7);
     } else {
-        LOG_ERR("unsupported benchmarch '%s'\n", cfg.benchmark);
+        LOG_ERR("unsupported benchmark '%s'\n", cfg.benchmark);
     }
 
     if (r) {
