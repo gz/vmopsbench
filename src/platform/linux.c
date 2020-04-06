@@ -28,8 +28,7 @@
 #include "../logging.h"
 
 
-
-#define MAP_HUGE_2MB    (21 << MAP_HUGE_SHIFT)
+#define MAP_HUGE_2MB (21 << MAP_HUGE_SHIFT)
 
 /*
  * ================================================================================================
@@ -219,8 +218,6 @@ plat_error_t plat_vm_create(const char *path, plat_memobj_t *memobj, size_t size
         flags |= MFD_HUGETLB | MFD_HUGE_2MB;
     }
 
-
-
     int fd = -1;
     fd = memfd_create(path, flags);
     if (fd == -1) {
@@ -270,7 +267,6 @@ plat_error_t plat_vm_destroy(plat_memobj_t memobj)
         if (shm_unlink(plat_mobj->name)) {
             LOG_WARN("could not unline '%s'. Continuing anyway.\n", plat_mobj->name);
         }
-
     }
     memset(plat_mobj, 0, sizeof(struct plat_memobj));
     free(plat_mobj);
