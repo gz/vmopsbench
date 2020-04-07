@@ -15,8 +15,6 @@
 #include "../platform/platform.h"
 #include "../logging.h"
 
-#define PAGE_SIZE 4096
-
 struct vmops_bench_cfg {
     const char *benchmark;
     uint32_t *coreslist;

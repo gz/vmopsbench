@@ -16,11 +16,10 @@
 #include "utils.h"
 
 
-static void *bench_run_fn(void *st)
+static void *bench_run_fn(struct vmops_bench_run_arg *args)
 {
     plat_error_t err;
 
-    struct vmops_bench_run_arg *args = st;
     struct vmops_bench_cfg *cfg = args->cfg;
 
     size_t counter = 0;
@@ -78,17 +77,16 @@ err_out:
 }
 
 
-static void *bench_run_4k_fn(void *st)
+static void *bench_run_4k_fn(struct vmops_bench_run_arg *args)
 {
     plat_error_t err;
 
-    struct vmops_bench_run_arg *args = st;
     struct vmops_bench_cfg *cfg = args->cfg;
 
     size_t counter = 0;
     plat_time_t t_delta = plat_convert_time(args->cfg->time_ms);
 
-    size_t nmaps = cfg->memsize / PAGE_SIZE;
+    size_t nmaps = cfg->memsize / PLAT_ARCH_BASE_PAGE_SIZE;
     void **addrs = calloc(nmaps, sizeof(void *));
     if (addrs == NULL) {
         LOG_ERR("thread %d malloc failed!\n", args->tid);
@@ -98,18 +96,20 @@ static void *bench_run_4k_fn(void *st)
     if (cfg->isolated) {
         void *addr = utils_vmops_get_map_address(args->tid);
         for (size_t i = 0; i < nmaps; i++) {
-            err = plat_vm_map_fixed(addr, PAGE_SIZE, args->memobj, i * PAGE_SIZE, cfg->maphuge);
+            err = plat_vm_map_fixed(addr, PLAT_ARCH_BASE_PAGE_SIZE, args->memobj,
+                                    i * PLAT_ARCH_BASE_PAGE_SIZE, cfg->maphuge);
             if (err != PLAT_ERR_OK) {
                 LOG_ERR("thread %d. failed to map memory!\n", args->tid);
                 goto cleanup_and_exit;
             }
             addrs[i] = addr;
 
-            addr = (void *)((uintptr_t)addr + PAGE_SIZE);
+            addr = (void *)((uintptr_t)addr + PLAT_ARCH_BASE_PAGE_SIZE);
         }
     } else {
         for (size_t i = 0; i < nmaps; i++) {
-            err = plat_vm_map(&addrs[i], PAGE_SIZE, args->memobj, i * PAGE_SIZE, cfg->maphuge);
+            err = plat_vm_map(&addrs[i], PLAT_ARCH_BASE_PAGE_SIZE, args->memobj,
+                              i * PLAT_ARCH_BASE_PAGE_SIZE, cfg->maphuge);
             if (err != PLAT_ERR_OK) {
                 LOG_ERR("thread %d. failed to map memory!\n", args->tid);
                 goto cleanup_and_exit;
@@ -127,12 +127,12 @@ static void *bench_run_4k_fn(void *st)
     size_t page = args->tid;
     while (t_current < t_end) {
         size_t idx = (page++) % nmaps;
-        err = plat_vm_protect(addrs[idx], PAGE_SIZE, PLAT_PERM_READ_ONLY);
+        err = plat_vm_protect(addrs[idx], PLAT_ARCH_BASE_PAGE_SIZE, PLAT_PERM_READ_ONLY);
         if (err != PLAT_ERR_OK) {
             LOG_ERR("thread %d. failed to protect memory!\n", args->tid);
             goto cleanup_and_exit;
         }
-        err = plat_vm_protect(addrs[idx], PAGE_SIZE, PLAT_PERM_READ_WRITE);
+        err = plat_vm_protect(addrs[idx], PLAT_ARCH_BASE_PAGE_SIZE, PLAT_PERM_READ_WRITE);
         if (err != PLAT_ERR_OK) {
             LOG_ERR("thread %d. failed to unprotect memory!\n", args->tid);
             goto cleanup_and_exit;
@@ -151,7 +151,7 @@ cleanup_and_exit:
 
     for (size_t i = 0; i < nmaps; i++) {
         if (addrs[i] != NULL) {
-            err = plat_vm_unmap(addrs[i], PAGE_SIZE);
+            err = plat_vm_unmap(addrs[i], PLAT_ARCH_BASE_PAGE_SIZE);
             if (err != PLAT_ERR_OK) {
                 LOG_ERR("thread %d. failed to unmap memory!\n", args->tid);
             }

@@ -17,6 +17,9 @@
 #define PLAT_ARCH_BASE_PAGE_SIZE (1 << 12)
 #define PLAT_ARCH_HUGE_PAGE_SIZE (1 << 21)
 
+///< forward declaration
+struct vmops_bench_run_arg;
+
 /*
  * ================================================================================================
  * Platform Errors
@@ -195,7 +198,7 @@ typedef void *plat_thread_t;
 typedef void *plat_barrier_t;
 
 ///< the run function type
-typedef void *(*plat_thread_fn_t)(void *st);
+typedef void *(*plat_thread_fn_t)(struct vmops_bench_run_arg *st);
 
 
 /**
@@ -207,7 +210,8 @@ typedef void *(*plat_thread_fn_t)(void *st);
  *
  * @returns handle to the thread, or NULL on error
  */
-plat_thread_t plat_thread_start(plat_thread_fn_t run, void *st, uint32_t coreid);
+plat_thread_t plat_thread_start(plat_thread_fn_t run, struct vmops_bench_run_arg *st,
+                                uint32_t coreid);
 
 
 /**

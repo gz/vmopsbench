@@ -412,7 +412,7 @@ struct plat_thread {
     uint32_t coreid;
     cpu_set_t cpuset;
     plat_thread_fn_t run;
-    void *st;
+    struct vmops_bench_run_arg *st;
 };
 
 
@@ -437,7 +437,8 @@ static void *plat_thread_run_fn(void *st)
  *
  * @returns handle to the thread, or NULL on error
  */
-plat_thread_t plat_thread_start(plat_thread_fn_t run, void *st, uint32_t coreid)
+plat_thread_t plat_thread_start(plat_thread_fn_t run, struct vmops_bench_run_arg *st,
+                                uint32_t coreid)
 {
     struct plat_thread *thread = malloc(sizeof(struct plat_thread));
     if (thread == NULL) {
