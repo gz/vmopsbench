@@ -1,0 +1,23 @@
+--------------------------------------------------------------------------------------------------
+-- Virtual Memory Operations Benchmark
+--
+-- Copyright 2020 Reto Achermann
+-- SPDX-License-Identifier: GPL-3.0
+--------------------------------------------------------------------------------------------------
+
+[
+  build application {
+    target = "vmops",
+    cFiles = [
+        "src/main.c",
+        "src/benchmarks/mapunmap.c",
+        "src/benchmarks/protect.c",
+        "src/benchmarks/utils.c",
+        "src/platform/barrelfish.c"
+    ],
+    addLibraries = [
+        "bench",
+        "numa"
+    ]
+  }
+]
