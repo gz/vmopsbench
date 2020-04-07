@@ -21,9 +21,19 @@
 
 #include "platform.h"
 #include "../logging.h"
-
+#include "../benchmarks/benchmarks.h"
 
 #define MAP_HUGE_2MB (21 << MAP_HUGE_SHIFT)
+
+/*
+ * ================================================================================================
+ * CNODE for Memory Objects
+ * ================================================================================================
+ */
+
+
+struct capref memobj_cnodecap;
+struct cnoderef memobj_cnoderef;
 
 /*
  * ================================================================================================
@@ -48,8 +58,15 @@ plat_error_t plat_init(void)
         return PLAT_ERR_INIT_FAILED;
     }
 
+    LOG_INFO("creating the span cnode\n");
 
-    /* TODO: span to all cores */
+    cslot_t retslots;
+    struct capref spancn = { .cnode = cnode_root, .slot = ROOTCN_SLOT_SPAN_CN };
+    err = cnode_create_raw(spancn, &memobj_cnoderef, ObjType_L2CNode, L2_CNODE_SLOTS, &retslots);
+    if (err_is_fail(err)) {
+        debug_printf("failed to create cnode\n");
+        return err_push(err, LIB_ERR_CNODE_CREATE);
+    }
 
     return PLAT_ERR_OK;
 }
@@ -209,6 +226,8 @@ struct plat_memobj {
     struct frame_identity id;  ///< information about the frame identity
 };
 
+static cslot_t memobj_slot = 0;
+
 
 /**
  * @brief creates a memory object for the benchmark
@@ -234,24 +253,37 @@ plat_error_t plat_vm_create(const char *path, plat_memobj_t *memobj, size_t size
         return PLAT_ERR_NO_MEM;
     }
 
-    err = frame_alloc(&plat_mobj->frame, size, NULL);
+
+    struct capref frame;
+    err = frame_alloc(&frame, size, NULL);
     if (err_is_fail(err)) {
         perr = PLAT_ERR_MEMOBJ_CREATE;
         goto err_out_1;
     }
 
-    err = frame_identify(plat_mobj->frame, &plat_mobj->id);
+    err = frame_identify(frame, &plat_mobj->id);
     if (err_is_fail(err)) {
         perr = PLAT_ERR_MEMOBJ_CREATE;
         goto err_out_2;
     }
+
+    plat_mobj->frame.cnode = memobj_cnoderef;
+    plat_mobj->frame.slot = memobj_slot++;
+
+    err = cap_copy(plat_mobj->frame, frame);
+    if (err_is_fail(err)) {
+        DEBUG_ERR(err, "failed to copy to the cnode\n");
+    }
+
+    cap_destroy(frame);
+
 
     *memobj = (plat_memobj_t)plat_mobj;
 
     return PLAT_ERR_OK;
 
 err_out_2:
-    cap_destroy(plat_mobj->frame);
+    cap_destroy(frame);
 
 err_out_1:
     free(plat_mobj);
@@ -421,19 +453,53 @@ plat_error_t plat_vm_unmap(void *addr, size_t size)
  * ================================================================================================
  */
 
-
 struct plat_thread {
     struct thread *thread;
     uint32_t coreid;
     plat_thread_fn_t run;
-    void *st;
+    struct vmops_bench_run_arg *st;
 };
+
+
+static errval_t send_memobj_cap(coreid_t coreid, plat_memobj_t mobj)
+{
+    errval_t err;
+
+    struct plat_memobj *plat_mobj = (struct plat_memobj *)mobj;
+
+    LOG_INFO("trying to send the capability to the memobj to core %d...\n", coreid);
+
+    err = domain_send_cap(coreid, plat_mobj->frame);
+    if (err_is_fail(err)) {
+        DEBUG_ERR(err, "failed to obtain the cap\n");
+        return err;
+    }
+
+    return SYS_ERR_OK;
+}
 
 
 static int plat_thread_run_fn(void *st)
 {
+    errval_t err;
+
     struct plat_thread *thr = (struct plat_thread *)st;
+
+    struct plat_memobj *plat_mobj = (struct plat_memobj *)thr->st->memobj;
+
+
+    struct frame_identity id;
+    err = frame_identify(plat_mobj->frame, &id);
+    if (err_is_fail(err)) {
+        DEBUG_ERR(err, "failed to obtain the cap\n");
+    }
+
+    if (plat_mobj->id.base != id.base) {
+        LOG_ERR("obtained capability is not the same as source!\n");
+    }
+
     thr->run(thr->st);
+
     return 0;
 }
 
@@ -447,7 +513,8 @@ static int plat_thread_run_fn(void *st)
  *
  * @returns handle to the thread, or NULL on error
  */
-plat_thread_t plat_thread_start(plat_thread_fn_t run, void *st, uint32_t coreid)
+plat_thread_t plat_thread_start(plat_thread_fn_t run, struct vmops_bench_run_arg *st,
+                                uint32_t coreid)
 {
     errval_t err;
 
@@ -464,6 +531,15 @@ plat_thread_t plat_thread_start(plat_thread_fn_t run, void *st, uint32_t coreid)
     thread->coreid = coreid;
     thread->run = run;
     thread->st = st;
+
+    if (coreid != disp_get_core_id()) {
+        err = send_memobj_cap(coreid, st->memobj);
+        if (err_is_fail(err)) {
+            LOG_ERR("failed to send the capability to the core\n");
+            free(thread);
+            return NULL;
+        }
+    }
 
     err = domain_thread_create_on(coreid, plat_thread_run_fn, thread, &thread->thread);
     if (err_is_fail(err)) {
