@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
     plat_error_t err;
 
     uint32_t ncores = 0;
-    cfg.benchmark = "independent";
+    cfg.benchmark = "mapunmap";
 
     plat_topo_numa_t numa_topology = PLAT_TOPOLOGY_NUMA_FILL;
     plat_topo_cores_t cores_topology = PLAT_TOPOLOGY_CORES_INTERLEAVE;
