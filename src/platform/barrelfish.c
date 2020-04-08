@@ -42,6 +42,32 @@ struct cnoderef memobj_cnoderef;
  */
 
 
+static struct thread_sem init_sem = THREAD_SEM_INITIALIZER
+;
+
+static int remote_init(void *dumm)
+{
+//    errval_t err = rsrc_join(my_rsrc_id);
+    //assert(err_is_ok(err));
+
+
+//    debug_printf("remote_init %d\n", disp_get_core_id());
+    thread_sem_post(&init_sem);
+    thread_detach(thread_self());
+    return 0;
+}
+
+static int cores_initialized = 1;
+
+static void domain_init_done(void *arg,
+                             errval_t err)
+{
+  //  debug_printf("domain_init_done %d\n", disp_get_core_id());
+    assert(err_is_ok(err));
+    cores_initialized++;
+}
+
+
 /**
  * @brief initializes the platform backend
  *
@@ -72,18 +98,51 @@ plat_error_t plat_init(struct vmops_bench_cfg *cfg)
         return err_push(err, LIB_ERR_CNODE_CREATE);
     }
 
-    for (uint32_t i = 0; i < cfg->corelist_size; i++) {
-        LOG_INFO("spanning domain to core %d\n", cfg->coreslist[i]);
-        if (disp_get_core_id() == cfg->coreslist[i]) {
-            continue;
-        }
 
-        err = spawn_span(cfg->coreslist[i]);
+
+    /* Span domain to all cores */
+    for (int i = 0; i <  cfg->corelist_size; ++i) {
+        //for (int i = my_core_id + BOMP_DEFAULT_CORE_STRIDE; i < nos_threads + my_core_id; i++) {
+        coreid_t core = cfg->coreslist[i];
+        err = domain_new_dispatcher(core, domain_init_done, NULL);
         if (err_is_fail(err)) {
-            DEBUG_ERR(err, "failed to span!");
-            return PLAT_ERR_INIT_FAILED;
+            DEBUG_ERR(err, "failed to span domain");
+            printf("Failed to span domain to %d\n", i);
+            assert(err_is_ok(err));
         }
     }
+
+    while (cores_initialized <  cfg->corelist_size) {
+        thread_yield();
+    }
+
+    /* Run a remote init function on remote cores */
+    for (int i = 0; i <  cfg->corelist_size; i++) {
+        coreid_t core = cfg->coreslist[i];
+        err = domain_thread_create_on(core, remote_init, NULL, NULL);
+        if (err_is_fail(err)) {
+            DEBUG_ERR(err, "domain_thread_create_on failed");
+            printf("domain_thread_create_on failed on %d\n", i);
+            assert(err_is_ok(err));
+        }
+        thread_sem_wait(&init_sem);
+    }
+
+    LOG_INFO("SPANNED TO ALL!\n");
+
+
+    // for (uint32_t i = 0; i < cfg->corelist_size; i++) {
+    //     LOG_INFO("spanning domain to core %d\n", cfg->coreslist[i]);
+    //     if (disp_get_core_id() == cfg->coreslist[i]) {
+    //         continue;
+    //     }
+
+    //     err = spawn_span(cfg->coreslist[i]);
+    //     if (err_is_fail(err)) {
+    //         DEBUG_ERR(err, "failed to span!");
+    //         return PLAT_ERR_INIT_FAILED;
+    //     }
+    // }
 
     return PLAT_ERR_OK;
 }
@@ -533,7 +592,6 @@ plat_thread_t plat_thread_start(plat_thread_fn_t run, struct vmops_bench_run_arg
 {
     errval_t err;
 
-    LOG_INFO("create thread data\n");
     struct plat_thread *thread = malloc(sizeof(struct plat_thread));
     if (thread == NULL) {
         return NULL;
@@ -552,8 +610,11 @@ plat_thread_t plat_thread_start(plat_thread_fn_t run, struct vmops_bench_run_arg
         }
     }
 
+
+    LOG_INFO("creating thread on\n");
     err = domain_thread_create_on(coreid, plat_thread_run_fn, thread, &thread->thread);
     if (err_is_fail(err)) {
+        DEBUG_ERR(err, "failed to create the thread\n");
         free(thread);
         return NULL;
     }
@@ -583,52 +644,39 @@ plat_error_t plat_thread_cancel(plat_thread_t thread)
 
 
 typedef struct pthread_barrier {
-    int count;
-    int max_count;
-    struct thread_sem mutex;
-    struct thread_sem barrier;
-    struct thread_sem reset;
+    unsigned max;
+    volatile unsigned cycle;
+    volatile unsigned counter;
 } pthread_barrier_t;
 
 
 int pthread_barrier_init(pthread_barrier_t *barrier, const pthread_barrierattr_t *attr,
                          unsigned max_count)
 {
-    barrier->count = 0;
-    barrier->max_count = max_count;
-
-    thread_sem_init(&barrier->mutex, 1);
-    thread_sem_init(&barrier->barrier, 0);
-    thread_sem_init(&barrier->reset, 1);
+    barrier->max = max_count;
+    barrier->cycle = 0;
+    barrier->counter = 0;
 
     return 0;
 }
 
 int pthread_barrier_wait(pthread_barrier_t *barrier)
 {
-    // waiting at the barrier
-    thread_sem_wait(&barrier->mutex);
-    barrier->count++;
-    if (barrier->count == barrier->max_count) {
-        thread_sem_wait(&barrier->reset);
-        thread_sem_post(&barrier->barrier);
+    int cycle = barrier->cycle;
+    if (__sync_fetch_and_add(&barrier->counter, 1) == barrier->max - 1) {
+        barrier->counter = 0;
+        barrier->cycle = !barrier->cycle;
+    } else {
+        uint64_t waitcnt = 0;
+
+        while (cycle == barrier->cycle) {
+            if (waitcnt == 0x400) {
+                waitcnt = 0;
+                thread_yield();
+            }
+            waitcnt++;
+        }
     }
-    thread_sem_post(&barrier->mutex);
-
-    thread_sem_wait(&barrier->barrier);
-    thread_sem_post(&barrier->barrier);
-
-    // reseting the barrier to be reused further
-    thread_sem_wait(&barrier->mutex);
-    barrier->count--;
-    if (barrier->count == 0) {
-        thread_sem_wait(&barrier->barrier);
-        thread_sem_post(&barrier->reset);
-    }
-    thread_sem_post(&barrier->mutex);
-
-    thread_sem_wait(&barrier->reset);
-    thread_sem_post(&barrier->reset);
 
     return 0;
 }
