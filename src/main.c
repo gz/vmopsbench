@@ -114,8 +114,6 @@ int main(int argc, char *argv[])
     plat_topo_numa_t numa_topology = PLAT_TOPOLOGY_NUMA_FILL;
     plat_topo_cores_t cores_topology = PLAT_TOPOLOGY_CORES_INTERLEAVE;
 
-    plat_init();
-
     int opt;
     while ((opt = getopt(argc, argv, "lip:t:c:m:n:b:h")) != -1) {
         switch (opt) {
@@ -159,7 +157,6 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-
     // validate cores list
     if (cfg.coreslist == NULL) {
         if (ncores == 0) {
@@ -178,6 +175,8 @@ int main(int argc, char *argv[])
             cfg.corelist_size = ncores;
         }
     }
+
+    plat_init(&cfg);
 
     if ((cfg.corelist_size * cfg.memsize) > (32UL << 30)) {
         LOG_WARN("estimate total required memory > 32GB!\n");

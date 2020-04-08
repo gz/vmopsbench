@@ -19,6 +19,7 @@
 
 ///< forward declaration
 struct vmops_bench_run_arg;
+struct vmops_bench_cfg;
 
 /*
  * ================================================================================================
@@ -51,9 +52,13 @@ typedef enum {
 
 
 /**
- *  @brief initializes the platform backend
+ * @brief initializes the platform backend
+ *
+ * @param cfg  the benchmark configuration
+ *
+ * @returns error value
  */
-plat_error_t plat_init(void);
+plat_error_t plat_init(struct vmops_bench_cfg *cfg);
 
 
 /*

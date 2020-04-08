@@ -43,9 +43,13 @@ struct cnoderef memobj_cnoderef;
 
 
 /**
- *  @brief initializes the platform backend
+ * @brief initializes the platform backend
+ *
+ * @param cfg  the benchmark configuration
+ *
+ * @returns error value
  */
-plat_error_t plat_init(void)
+plat_error_t plat_init(struct vmops_bench_cfg *cfg)
 {
     errval_t err;
 
@@ -66,6 +70,19 @@ plat_error_t plat_init(void)
     if (err_is_fail(err)) {
         debug_printf("failed to create cnode\n");
         return err_push(err, LIB_ERR_CNODE_CREATE);
+    }
+
+    for (uint32_t i = 0; i < cfg->corelist_size; i++) {
+        LOG_INFO("spanning domain to core %d\n", cfg->coreslist[i]);
+        if (disp_get_core_id() == cfg->coreslist[i]) {
+            continue;
+        }
+
+        err = spawn_span(cfg->coreslist[i]);
+        if (err_is_fail(err)) {
+            DEBUG_ERR(err, "failed to span!");
+            return PLAT_ERR_INIT_FAILED;
+        }
     }
 
     return PLAT_ERR_OK;
@@ -518,11 +535,7 @@ plat_thread_t plat_thread_start(plat_thread_fn_t run, struct vmops_bench_run_arg
 {
     errval_t err;
 
-    err = spawn_span(coreid);
-    if (err_is_fail(err)) {
-        return NULL;
-    }
-
+    LOG_INFO("create thread data\n");
     struct plat_thread *thread = malloc(sizeof(struct plat_thread));
     if (thread == NULL) {
         return NULL;

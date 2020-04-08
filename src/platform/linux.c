@@ -38,10 +38,15 @@
 
 
 /**
- *  @brief initializes the platform backend
+ * @brief initializes the platform backend
+ *
+ * @param cfg  the benchmark configuration
+ *
+ * @returns error value
  */
-plat_error_t plat_init(void)
+plat_error_t plat_init(struct vmops_bench_cfg *cfg)
 {
+    (void)cfg;
     LOG_PRINT("Initializing VMOPS bench on Linux\n");
     LOG_INFO("hint: reserve hugepages '/sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages'\n");
     LOG_INFO("hint: allow more mappings 'sysctl -w vm.max_map_count=2000000000'\n");
