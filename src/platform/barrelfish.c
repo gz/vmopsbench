@@ -424,22 +424,20 @@ plat_error_t plat_vm_map_fixed(void *addr, size_t size, plat_memobj_t memobj, of
  */
 plat_error_t plat_vm_protect(void *addr, size_t size, plat_perm_t perms)
 {
-    LOG_WARN("not yet implemented!!!\n");
+    errval_t err;
 
-    /*
-    int prot = PROT_READ;
+
+    vregion_flags_t flags = VREGION_FLAGS_READ;
     if (perms == PLAT_PERM_READ_WRITE) {
-        prot |= PROT_WRITE;
+        flags = VREGION_FLAGS_READ_WRITE;
     }
 
-    vspace_p
-
-    if (mprotect(addr, size, prot)) {
+    err = vspace_change_flags((lvaddr_t)addr, size, flags);
+    if (err_is_fail(err)) {
         return PLAT_ERR_PROTECT_FAILED;
     }
-    */
 
-    return -1;
+    return PLAT_ERR_OK;
 }
 
 
