@@ -13,11 +13,12 @@ declare -a mappings=("" "-4k")
 
 declare -a memsizes=("4096" "2097152")
 declare -a numa=("" "-i")
+declare -a huge=("" "-l")
 
 #echo never > /sys/kernel/mm/transparent_hugepage/enabled
 rm *.log *.csv *.png *.pdf /dev/shm/vmops_bench_* || true
 sudo sysctl -w vm.max_map_count=50000000
-echo 1024 | sudo tee  /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+echo 100000 | sudo tee  /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
 
 
 for b in "${bench[@]}"; do
@@ -26,21 +27,22 @@ for b in "${bench[@]}"; do
             for m in "${mappings[@]}"; do
                 benchmark="$b$i-$s$m"
                 for numa in "${numa[@]}"; do
-                    LOGFILE=${HOSTNAME}_results_${benchmark}${numa}.log
-                    CSVFILE=${HOSTNAME}_results_${benchmark}${numa}.csv
+                    for h in "${huge[@]}"; do
+                        LOGFILE=${HOSTNAME}_results_${bench}.log
+                        CSVFILE=${HOSTNAME}_results_${bench}.csv
 
-                    for memsize in "${memsizes[@]}"; do
-                        if [ ! -f "$CSVFILE" ]; then
-                            echo "thread_id,benchmark,core,ncores,memsize,duration,operations" | tee $CSVFILE
-                        fi
-
-                        for cores in `seq 0 4 $MAX_CORES`; do
-                            cat /proc/interrupts | grep TLB | tee -a $LOGFILE;
-                            (./bin/vmops -p $cores -t $DURATION_MS -m $memsize -b ${benchmark} ${numa} | tee -a $CSVFILE) 3>&1 1>&2 2>&3 | tee -a $LOGFILE
+                        for memsize in "${memsizes[@]}"; do
+                            if [ ! -f "$CSVFILE" ]; then
+                                echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $CSVFILE
+                            fi
+                            for cores in `seq 0 8 $MAX_CORES`; do
+                                cat /proc/interrupts | grep TLB | tee -a $LOGFILE;
+                                (./bin/vmops -p $cores -t $DURATION_MS -m $memsize -b ${benchmark} ${numa} ${h} | tee -a $CSVFILE) 3>&1 1>&2 2>&3 | tee -a $LOGFILE
+                            done
                         done
-                    done
 
-                    python3 ./scripts/plot.py ${CSVFILE}
+                        #python3 ./scripts/plot.py ${CSVFILE}
+                    done
                 done
             done
         done

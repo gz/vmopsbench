@@ -44,22 +44,32 @@ class theme_my538(theme_gray):
 
 def plot_scalability(filename, df):
     "Plots a throughput graph for various threads showing the throughput over time"
-    benchmark = df.groupby(['ncores', 'benchmark', 'memsize'], as_index=False).agg({'operations': 'sum', 'thread_id': 'count', 'duration': 'max'})
-    MS_TO_SEC = 0.001
-    benchmark['tps'] = (benchmark['operations'] / (benchmark['duration'] * MS_TO_SEC)).fillna(0.0).astype(int)
-    benchmark['memsize_fmt'] = benchmark['memsize'].transform(lambda val: humanfriendly.format_size(val, binary=True))
 
-    print(benchmark)
-    p = ggplot(data=benchmark, mapping=aes(x='ncores', y='tps', ymin=0, xmax=192, color='memsize_fmt', group='memsize_fmt')) + \
-        theme_my538(base_size=13) + \
-        labs(y="Throughput [Kelems/s]", x = "# Threads") + \
-        theme(legend_position='top', legend_title = element_blank()) + \
-        scale_y_log10(labels=lambda lst: ["{:,.2f}".format(x / 100_000) for x in lst]) + \
-        geom_point() + \
-        geom_line()
+    df['benchop'] = df.apply(lambda row: "{}".format(row.benchmark.split("-")[0]), axis = 1)
 
-    p.save("{}-throughput.png".format(filename), dpi=300)
-    p.save("{}-throughput.pdf".format(filename), dpi=300)
+    for name in df.benchop.unique():
+        benchmark = df.loc[df['benchop'] == name]
+
+        benchmark['memsize_fmt'] = benchmark['memsize'].transform(lambda val: humanfriendly.format_size(val, binary=True))
+        benchmark['setting'] = benchmark.apply(lambda row: " ".join(row.benchmark.split("-")[1:]) + " " + row.page_size, axis = 1)
+
+        benchmark = benchmark.groupby(['ncores', 'benchmark', 'memsize', 'setting', 'memsize_fmt', 'page_size'], as_index=False).agg({'operations': 'sum', 'thread_id': 'count', 'duration': 'max'})
+        MS_TO_SEC = 0.001
+        benchmark['tps'] = (benchmark['operations'] / (benchmark['duration'] * MS_TO_SEC)).fillna(0.0).astype(int)
+
+        print(benchmark)
+        p = ggplot(data=benchmark, mapping=aes(x='ncores', y='tps', ymin=0, xmax=192, color='setting', group='setting')) + \
+            theme_my538(base_size=13) + \
+            labs(y="Throughput [Kelems/s]", x = "# Threads") + \
+            theme(legend_position='top', legend_title = element_blank()) + \
+            scale_y_log10(labels=lambda lst: ["{:,.2f}".format(x / 100_000) for x in lst]) + \
+            geom_point() + \
+            geom_line() + \
+            facet_grid(["memsize_fmt", "page_size"], scales="free_y")
+
+
+        p.save("{}-throughput.png".format(name), dpi=300)
+        p.save("{}-throughput.pdf".format(name), dpi=300)
 
 
 def parse_results(path):
