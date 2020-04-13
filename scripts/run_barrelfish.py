@@ -169,6 +169,7 @@ def run_barrelfish(args):
                 print("Using the following generated menu.lst")
                 print(my_menu)
             menu_lst_file.write(my_menu)
+
         with local.cwd(BARRELIFH_BUILD):
             cmd_args = ["../tools/qemu-wrapper.sh",
                         "--menu", "platforms/x86/menu.lst.x86_64", "--arch", "x86_64"]
@@ -177,7 +178,7 @@ def run_barrelfish(args):
             CSV_ROW_BEGIN = "===================== BEGIN CSV ====================="
             CSV_ROW_END = "====================== END CSV ======================"
             qemu_instance = pexpect.spawn(
-                ' '.join(cmd_args), cwd=BARRELIFH_BUILD, timeout=20)
+                ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': '16', 'MEMORY': '8G'}, timeout=28+i*5)
             qemu_instance.expect(CSV_ROW_BEGIN)
             qemu_instance.expect(CSV_ROW_END)
             results = qemu_instance.before.decode('utf-8')
