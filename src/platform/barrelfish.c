@@ -86,8 +86,8 @@ plat_error_t plat_init(struct vmops_bench_cfg *cfg)
     uint32_t eax, ebx;
     cpuid(0x40000010, &eax, &ebx, NULL, NULL);
 
-    LOG_PRINT("Virtual TSC frequency: %d\n", eax);
-    LOG_PRINT("Bench TSC frequency: %" PRIu64 "\n", bench_tsc_per_us());
+    LOG_PRINT("Virtual TSC frequency: %d kHz\n", eax);
+    LOG_PRINT("Bench TSC frequency: %" PRIu64 "kHz\n", bench_tsc_per_us() * 1000);
 
     err = skb_client_connect();
     if (err_is_fail(err)) {
