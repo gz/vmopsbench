@@ -83,6 +83,12 @@ plat_error_t plat_init(struct vmops_bench_cfg *cfg)
 
     bench_init();
 
+    uint32_t eax, ebx;
+    cpuid(0x40000010, &eax, &ebx, NULL, NULL);
+
+    LOG_PRINT("Virtual TSC frequency: %d\n", eax);
+    LOG_PRINT("Bench TSC frequency: %" PRIu64 "\n", bench_tsc_per_us());
+
     err = skb_client_connect();
     if (err_is_fail(err)) {
         return PLAT_ERR_INIT_FAILED;
@@ -791,9 +797,9 @@ plat_error_t plat_thread_join(plat_thread_t other)
  */
 plat_time_t plat_get_time(void)
 {
-    struct timespec t;
-    clock_gettime(CLOCK_REALTIME, &t);
-    return (uint64_t)(t.tv_sec * 1000000000UL + t.tv_nsec);
+
+    cycles_t cyc = bench_tsc();
+    return bench_tsc_to_us(cyc) * 1000;
 }
 
 
