@@ -7,7 +7,7 @@
 
 [
   build application {
-    target = "vmops",
+    target = "vmops_list",
     cFiles = [
         "src/main.c",
         "src/benchmarks/mapunmap.c",
@@ -15,6 +15,36 @@
         "src/benchmarks/utils.c",
         "src/platform/barrelfish.c"
     ],
+    addLibraries = [
+        "bench",
+        "numa"
+    ]
+  },
+  build application {
+    target = "vmops_array_mcn",
+    cFiles = [
+        "src/main.c",
+        "src/benchmarks/mapunmap.c",
+        "src/benchmarks/protect.c",
+        "src/benchmarks/utils.c",
+        "src/platform/barrelfish.c"
+    ],
+    libraryOs = Config.libbarrelfish_pmap_array_mcn,
+    addLibraries = [
+        "bench",
+        "numa"
+    ]
+  },
+  build application {
+    target = "vmops_array",
+    cFiles = [
+        "src/main.c",
+        "src/benchmarks/mapunmap.c",
+        "src/benchmarks/protect.c",
+        "src/benchmarks/utils.c",
+        "src/platform/barrelfish.c"
+    ],
+    libraryOs = Config.libbarrelfish_pmap_array,
     addLibraries = [
         "bench",
         "numa"
