@@ -45,7 +45,7 @@ module /x86_64/sbin/corectrl auto
 # module /x86_64/sbin/ahcid auto
 
 #
-module /x86_64/sbin/vmops -p {} -t {} -b {}
+module /x86_64/sbin/vmops_array_mcn -p {} -t {} -b {}
 """
 
 #
