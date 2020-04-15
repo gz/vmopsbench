@@ -72,7 +72,7 @@ perfdata/maponly-isolated-4.perf: perfdata bin/vmopstrace
 
 perfdata/maponly-default-4.perf: perfdata bin/vmopstrace
 	make profileprep
-	perf record -o $@ --delay=1 -g ./bin/vmopstrace -b maponly -p 4-t 5000
+	perf record -o $@ --delay=1 -g ./bin/vmopstrace -b maponly -p 4 -t 5000
 
 
 perfdata/%.out : perfdata/%.perf
