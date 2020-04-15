@@ -58,4 +58,10 @@ bin/*
 *.log
 *.png
 *.pdf
-*.csv
+*.csvperfdata
+
+# contrib
+contrib/flamegraph
+
+# data
+perfdata
