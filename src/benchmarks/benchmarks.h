@@ -22,6 +22,7 @@ struct vmops_bench_cfg {
     size_t memsize;
     size_t nmaps;
     uint32_t time_ms;
+    uint32_t stats;
     bool nounmap;
     bool shared;
     bool isolated;
@@ -30,6 +31,20 @@ struct vmops_bench_cfg {
     bool numainterleave;
 };
 
+struct pair
+{
+    plat_time_t idx;
+    plat_time_t val;
+};
+
+struct vmops_stats
+{
+    struct pair *values;
+    size_t idx;
+    size_t idx_max;
+};
+
+#define VMOPS_STATS_MAX 10000000
 
 struct vmops_bench_run_arg
 {
@@ -41,6 +56,7 @@ struct vmops_bench_run_arg
     plat_barrier_t barrier;
     size_t count;
     double duration;
+    struct vmops_stats stats;
 };
 
 

@@ -9,6 +9,7 @@
 #define __VMOPS_LOGGING_H_ 1
 
 #include <stdio.h>
+#include <inttypes.h>
 
 
 // General Formatting
@@ -86,6 +87,13 @@
             ((_cfg)->maphuge ? "hugepages" : "basepages"),                                        \
             ((_cfg)->shared ? "shared-memobj" : "independent-memobj"),                            \
             ((_cfg)->isolated ? "isolated" : "default"), _d, _tpt);
+
+#define LOG_STATS(n, stat)                                                                        \
+    do {                                                                                          \
+        if ((stat).idx != 0 && (stat).val != 0) {                                                 \
+            fprintf(stderr, "%7zu   %12" PRIu64 "   %6" PRIu64 "\n", n, (stat).idx, (stat).val);  \
+        }                                                                                         \
+    } while (0)
 
 
 #endif /* __VMOPS_LOGGING_H_ */

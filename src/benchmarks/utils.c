@@ -87,7 +87,7 @@ char *vmops_utils_print_options(struct vmops_bench_cfg *cfg)
 
     snprintf(optbuf, sizeof(optbuf), "%s%s, %s, %s", cfg->nounmap ? "nounmap, " : "",
              cfg->shared ? "shared" : "independent", cfg->isolated ? "isolated" : "default",
-             cfg->map4k ? "many 4k mappings" : "one large mapping" );
+             cfg->map4k ? "many 4k mappings" : "one large mapping");
 
     return optbuf;
 }
@@ -98,6 +98,20 @@ char *vmops_utils_print_options(struct vmops_bench_cfg *cfg)
  * Result Printing
  * ================================================================================================
  */
+
+static int paircmp(const void *_p1, const void *_p2)
+{
+    const struct pair *p1 = _p1;
+    const struct pair *p2 = _p2;
+
+    if (p1->idx < p2->idx) {
+        return -1;
+    } else if (p1->idx == p2->idx) {
+        return 0;
+    } else {
+        return 1;
+    }
+}
 
 
 /**
@@ -125,6 +139,15 @@ void vmops_utils_print_csv(struct vmops_bench_run_arg *args, size_t total_ops)
     }
     LOG_CSV_FOOTER();
     LOG_RESULT(cfg->benchmark, cfg->memsize, cfg->time_ms, cfg->corelist_size, total_ops);
+
+    struct pair *pairs = args[0].stats.values;
+    if (cfg->stats && pairs) {
+        qsort(pairs, cfg->stats * cfg->corelist_size, sizeof(struct pair), paircmp);
+
+        for (size_t i = 0; i < cfg->stats * cfg->corelist_size; i++) {
+            LOG_STATS(i, pairs[i]);
+        }
+    }
 }
 
 
@@ -152,6 +175,17 @@ int vmops_utils_prepare_args(struct vmops_bench_cfg *cfg, struct vmops_bench_run
                                               sizeof(struct vmops_bench_run_arg));
     if (args == NULL) {
         return -1;
+    }
+
+    struct pair *vals = NULL;
+    if (cfg->stats) {
+        LOG_INFO("allocating stats. %zu kB memory\n",
+                 (cfg->corelist_size * cfg->stats * sizeof(struct pair)) >> 10);
+        vals = calloc(cfg->corelist_size, cfg->stats * sizeof(struct pair));
+        if (vals == NULL) {
+            LOG_WARN("disabling statistics. failed to get memory!\n");
+            cfg->stats = 0;
+        }
     }
 
     size_t totalmem = cfg->shared ? cfg->memsize : cfg->corelist_size * cfg->memsize;
@@ -191,6 +225,8 @@ int vmops_utils_prepare_args(struct vmops_bench_cfg *cfg, struct vmops_bench_run
         args[i].tid = i;
         args[i].cfg = cfg;
         args[i].coreid = cfg->coreslist[i];
+        args[i].stats.idx_max = cfg->stats;
+        args[i].stats.values = cfg->stats > 0 ? vals + cfg->stats * i : NULL;
     }
 
     args[cfg->corelist_size].tid = -1;

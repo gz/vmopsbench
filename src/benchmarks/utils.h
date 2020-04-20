@@ -100,7 +100,7 @@ int vmops_utils_cleanup_args(struct vmops_bench_run_arg *args);
  * @returns 0 on success, -1 on failure
  */
 int vmops_utils_run_benchmark(uint32_t nthreads, struct vmops_bench_run_arg *args,
-                             plat_thread_fn_t runfn);
+                              plat_thread_fn_t runfn);
 
 
 /*
@@ -115,5 +115,25 @@ static inline void *utils_vmops_get_map_address(uint32_t tid)
 {
     return (void *)(ADDRESS_OFFSET * (tid + 1));
 }
+
+
+/*
+ * ================================================================================================
+ * Statistics
+ * ================================================================================================
+ */
+
+
+static inline void vmops_utils_add_stats(struct vmops_stats *stats, plat_time_t idx,
+                                         plat_time_t val)
+{
+    if (stats->idx == stats->idx_max) {
+        return;
+    }
+
+    stats->values[stats->idx] = (struct pair){idx, val};
+    stats->idx++;
+}
+
 
 #endif /* __VMOPS_BENCH_UTILS_H_ */

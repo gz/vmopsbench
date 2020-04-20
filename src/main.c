@@ -20,6 +20,7 @@ static struct vmops_bench_cfg cfg = { .memsize = 4096,
                                       .coreslist = NULL,
                                       .corelist_size = 0,
                                       .time_ms = 10,
+                                      .stats = 0,
                                       .nounmap = false,
                                       .nmaps = 1,
                                       .map4k = false,
@@ -115,7 +116,7 @@ int main(int argc, char *argv[])
     plat_topo_cores_t cores_topology = PLAT_TOPOLOGY_CORES_INTERLEAVE;
 
     int opt;
-    while ((opt = getopt(argc, argv, "lip:t:c:m:n:b:h")) != -1) {
+    while ((opt = getopt(argc, argv, "lis:p:t:c:m:n:b:h")) != -1) {
         switch (opt) {
         case 'l':
             cfg.maphuge = true;
@@ -141,6 +142,10 @@ int main(int argc, char *argv[])
             break;
         case 't':
             cfg.time_ms = strtoul(optarg, NULL, 10);
+            break;
+        case 's':
+            cfg.stats = strtoul(optarg, NULL, 10);
+            LOG_INFO("activating stats for %d values\n", cfg.stats);
             break;
         case 'h':
             print_help(argv[0]);
