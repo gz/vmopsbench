@@ -15,6 +15,9 @@
 #include "../platform/platform.h"
 #include "../logging.h"
 
+///< the default rate of sampling
+#define DEFAULT_SAMPLING_RATE_MS 10
+
 struct vmops_bench_cfg {
     const char *benchmark;
     uint32_t *coreslist;
@@ -23,6 +26,7 @@ struct vmops_bench_cfg {
     size_t nmaps;
     uint32_t time_ms;
     uint32_t stats;
+    uint32_t rate;
     bool nounmap;
     bool shared;
     bool isolated;
@@ -31,17 +35,21 @@ struct vmops_bench_cfg {
     bool numainterleave;
 };
 
-struct pair
+struct statval
 {
-    plat_time_t idx;
+    uint32_t tid;
+    plat_time_t t_elapsed;
+    uint64_t counter;
     plat_time_t val;
 };
 
 struct vmops_stats
 {
-    struct pair *values;
+    struct statval *values;
     size_t idx;
     size_t idx_max;
+    plat_time_t sampling_delta;
+    plat_time_t sampling_next;
 };
 
 #define VMOPS_STATS_MAX 10000000
