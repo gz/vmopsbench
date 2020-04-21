@@ -23,6 +23,7 @@ static struct vmops_bench_cfg cfg = { .memsize = 4096,
                                       .stats = 0,
                                       .nounmap = false,
                                       .nmaps = 1,
+                                      .rate = 0,
                                       .map4k = false,
                                       .maphuge = false,
                                       .isolated = false,
@@ -116,7 +117,7 @@ int main(int argc, char *argv[])
     plat_topo_cores_t cores_topology = PLAT_TOPOLOGY_CORES_INTERLEAVE;
 
     int opt;
-    while ((opt = getopt(argc, argv, "lis:p:t:c:m:n:b:h")) != -1) {
+    while ((opt = getopt(argc, argv, "lis:p:t:c:m:n:b:r:h")) != -1) {
         switch (opt) {
         case 'l':
             cfg.maphuge = true;
@@ -146,6 +147,10 @@ int main(int argc, char *argv[])
         case 's':
             cfg.stats = strtoul(optarg, NULL, 10);
             LOG_INFO("activating stats for %d values\n", cfg.stats);
+            break;
+        case 'r':
+            cfg.rate = strtoul(optarg, NULL, 10);
+            LOG_INFO("using sampling rate %d ms for stats\n", cfg.rate);
             break;
         case 'h':
             print_help(argv[0]);
@@ -190,6 +195,10 @@ int main(int argc, char *argv[])
     if (cfg.maphuge && cfg.memsize < PLAT_ARCH_HUGE_PAGE_SIZE) {
         LOG_WARN("increasing memsize to PLAT_ARCH_HUGE_PAGE_SIZE=%d\n", PLAT_ARCH_HUGE_PAGE_SIZE);
         cfg.memsize = PLAT_ARCH_HUGE_PAGE_SIZE;
+    }
+
+    if (cfg.rate == 0) {
+        cfg.rate = DEFAULT_SAMPLING_RATE_MS;
     }
 
     LOG_PRINT("==========================================================================\n");

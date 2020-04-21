@@ -101,12 +101,12 @@ char *vmops_utils_print_options(struct vmops_bench_cfg *cfg)
 
 static int paircmp(const void *_p1, const void *_p2)
 {
-    const struct pair *p1 = _p1;
-    const struct pair *p2 = _p2;
+    const struct statval *p1 = _p1;
+    const struct statval *p2 = _p2;
 
-    if (p1->idx < p2->idx) {
+    if (p1->t_elapsed < p2->t_elapsed) {
         return -1;
-    } else if (p1->idx == p2->idx) {
+    } else if (p1->t_elapsed == p2->t_elapsed) {
         return 0;
     } else {
         return 1;
@@ -140,10 +140,11 @@ void vmops_utils_print_csv(struct vmops_bench_run_arg *args, size_t total_ops)
     LOG_CSV_FOOTER();
     LOG_RESULT(cfg->benchmark, cfg->memsize, cfg->time_ms, cfg->corelist_size, total_ops);
 
-    struct pair *pairs = args[0].stats.values;
+    struct statval *pairs = args[0].stats.values;
     if (cfg->stats && pairs) {
-        qsort(pairs, cfg->stats * cfg->corelist_size, sizeof(struct pair), paircmp);
+        qsort(pairs, cfg->stats * cfg->corelist_size, sizeof(struct statval), paircmp);
 
+        LOG_STATS_HEADER();
         for (size_t i = 0; i < cfg->stats * cfg->corelist_size; i++) {
             LOG_STATS(i, pairs[i]);
         }
@@ -177,11 +178,11 @@ int vmops_utils_prepare_args(struct vmops_bench_cfg *cfg, struct vmops_bench_run
         return -1;
     }
 
-    struct pair *vals = NULL;
+    struct statval *vals = NULL;
     if (cfg->stats) {
         LOG_INFO("allocating stats. %zu kB memory\n",
-                 (cfg->corelist_size * cfg->stats * sizeof(struct pair)) >> 10);
-        vals = calloc(cfg->corelist_size, cfg->stats * sizeof(struct pair));
+                 (cfg->corelist_size * cfg->stats * sizeof(struct statval)) >> 10);
+        vals = calloc(cfg->corelist_size, cfg->stats * sizeof(struct statval));
         if (vals == NULL) {
             LOG_WARN("disabling statistics. failed to get memory!\n");
             cfg->stats = 0;
@@ -225,6 +226,8 @@ int vmops_utils_prepare_args(struct vmops_bench_cfg *cfg, struct vmops_bench_run
         args[i].tid = i;
         args[i].cfg = cfg;
         args[i].coreid = cfg->coreslist[i];
+        args[i].stats.sampling_delta = plat_convert_time(cfg->rate);
+        args[i].stats.sampling_next = 0;
         args[i].stats.idx_max = cfg->stats;
         args[i].stats.values = cfg->stats > 0 ? vals + cfg->stats * i : NULL;
     }
@@ -276,8 +279,6 @@ int vmops_utils_cleanup_args(struct vmops_bench_run_arg *args)
     LOG_INFO("cleanup done.\n");
 
     free(args);
-
-    LOG_INFO("cleanup done.\n");
 
     return 0;
 }

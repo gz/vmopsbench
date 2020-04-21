@@ -88,10 +88,14 @@
             ((_cfg)->shared ? "shared-memobj" : "independent-memobj"),                            \
             ((_cfg)->isolated ? "isolated" : "default"), _d, _tpt);
 
+
+// prints time elapsed, thread id, number of operations so far on this thread, time of the operation
+#define LOG_STATS_HEADER() fprintf(stderr, "tid,   t_elapsed,  counter, latency\n");
 #define LOG_STATS(n, stat)                                                                        \
     do {                                                                                          \
-        if ((stat).idx != 0 && (stat).val != 0) {                                                 \
-            fprintf(stderr, "%7zu   %12" PRIu64 "   %6" PRIu64 "\n", n, (stat).idx, (stat).val);  \
+        if ((stat).t_elapsed != 0 && (stat).val != 0) {                                           \
+            fprintf(stderr, "%3d,%12f, %8" PRIu64 ", %7" PRIu64 "\n", (stat).tid,                 \
+                    plat_time_to_ms((stat).t_elapsed), (stat).counter, (stat).val);               \
         }                                                                                         \
     } while (0)
 

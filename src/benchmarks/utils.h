@@ -124,15 +124,20 @@ static inline void *utils_vmops_get_map_address(uint32_t tid)
  */
 
 
-static inline void vmops_utils_add_stats(struct vmops_stats *stats, plat_time_t idx,
-                                         plat_time_t val)
+static inline void vmops_utils_add_stats(struct vmops_stats *stats, uint32_t tid, uint64_t ops,
+                                         plat_time_t t_elapsed, plat_time_t val)
 {
+    if (stats->sampling_next > t_elapsed) {
+        return;
+    }
+
     if (stats->idx == stats->idx_max) {
         return;
     }
 
-    stats->values[stats->idx] = (struct pair){idx, val};
+    stats->values[stats->idx] = (struct statval){tid, t_elapsed, ops, val};
     stats->idx++;
+    stats->sampling_next = t_elapsed + stats->sampling_delta;
 }
 
 
