@@ -223,10 +223,12 @@ static void *bench_run_nounmap_fn(struct vmops_bench_run_arg *args)
     plat_time_t t_current = plat_get_time();
     plat_time_t t_end = t_current + t_delta;
     plat_time_t t_start = t_current;
+    plat_time_t t_op_start;
 
     if (cfg->isolated) {
         void *addr = utils_vmops_get_map_address(args->tid);
         while (t_current < t_end) {
+            t_op_start = plat_get_time();
             err = plat_vm_map_fixed(addr, memsize, args->memobj, 0, cfg->maphuge);
             if (err != PLAT_ERR_OK) {
                 LOG_ERR("thread %d. failed to map memory!\n", args->tid);
@@ -235,9 +237,13 @@ static void *bench_run_nounmap_fn(struct vmops_bench_run_arg *args)
             addr += memsize;
             t_current = plat_get_time();
             counter++;
+            vmops_utils_add_stats(&args->stats, args->tid, counter, t_current - t_start,
+                                  t_current - t_op_start);
         }
     } else {
         while (t_current < t_end) {
+            t_op_start = plat_get_time();
+
             void *addr;
             err = plat_vm_map(&addr, memsize, args->memobj, 0, cfg->maphuge);
             if (err != PLAT_ERR_OK) {
@@ -247,6 +253,8 @@ static void *bench_run_nounmap_fn(struct vmops_bench_run_arg *args)
 
             t_current = plat_get_time();
             counter++;
+            vmops_utils_add_stats(&args->stats, args->tid, counter, t_current - t_start,
+                                  t_current - t_op_start);
         }
     }
     t_end = plat_get_time();
