@@ -87,16 +87,15 @@ perfdata/%.svg : perfdata/%.folded contrib/flamegraph
 	./contrib/flamegraph/flamegraph.pl --title "$@" --width 3500   $< > $@
 
 profile-maponly-default : perfdata/maponly-default.svg Makefile
-	xdg-open perfdata/maponly-default.svg
 
 profile-maponly-isolated : perfdata/maponly-isolated.svg Makefile
-	xdg-open perfdata/maponly-isolated.svg
 
 profile-maponly-default-4 : perfdata/maponly-default-4.svg Makefile
-	xdg-open perfdata/maponly-default-4.svg
 
 profile-maponly-isolated-4 : perfdata/maponly-isolated-4.svg Makefile
-	xdg-open perfdata/maponly-isolated-4.svg
 
 clean:
 	rm -rf bin
+	rm -rf *.csv *.log *.png *.pdf
+	rm -rf perfdata
+	rm -rf scripts/barrelfish

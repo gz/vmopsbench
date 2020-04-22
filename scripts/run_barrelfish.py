@@ -126,7 +126,7 @@ def deploy_vmops(args):
     VMOPS_IN_BF_DIR = BARRELFISH_DIR / 'usr' / 'vmops'
     VMOPS_IN_BF_DIR.mkdir(parents=True, exist_ok=True)
     shutil.rmtree(VMOPS_IN_BF_DIR /
-                  'src')
+                  'src', ignore_errors=True)
     shutil.copytree(VMOPS_DIR / 'src', VMOPS_IN_BF_DIR /
                     'src')
     shutil.copy2(VMOPS_DIR / 'Hakefile',
@@ -151,7 +151,7 @@ def build_barrelfish(args):
                 print("make " + " ".join(make_args))
             make(*make_args)
 
-            make_args = ['-j', '6', 'x86_64/sbin/vmops']
+            make_args = ['-j', '6', 'x86_64/sbin/vmops_array_mcn']
             if args.verbose:
                 print("make " + " ".join(make_args))
             make(*make_args)
