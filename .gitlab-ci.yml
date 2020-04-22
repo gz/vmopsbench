@@ -8,7 +8,7 @@ build:
     - make
 
 benchmark:
-  stage: test
+  stage: benchmark
   script:
     - bash scripts/ci.bash
   dependencies:
