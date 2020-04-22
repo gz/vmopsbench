@@ -55,10 +55,10 @@ dkms.conf
 bin/*
 
 # Log files
-*.log
-*.png
-*.pdf
-*.csvperfdata
+**/*.log
+**/*.png
+**/*.pdf
+**/*.csv
 
 # contrib
 contrib/flamegraph
