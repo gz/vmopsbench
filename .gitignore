@@ -62,6 +62,7 @@ bin/*
 
 # contrib
 contrib/flamegraph
+scripts/barrelfish
 
 # data
 perfdata

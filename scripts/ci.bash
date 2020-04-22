@@ -36,7 +36,7 @@ python3 scripts/plot.py $CSVFILE
 python3 scripts/run_barrelfish.py --cores 1 --verbose --hake
 python3 scripts/run_barrelfish.py --cores 1 2
 python3 scripts/run_barrelfish.py --cores 1 2 3
-python3 scripts/run_barrelfish.py --cores 1 2 3 4
+# python3 scripts/run_barrelfish.py --cores 1 2 3 4 (not stable enough)
 
 rm -rf gh-pages
 git clone -b gh-pages git@github.com:gz/vmops-bench.git gh-pages
@@ -48,7 +48,7 @@ echo $CSV_LINE >> gh-pages/_data/$CI_MACHINE_TYPE.csv
 
 DEPLOY_DIR="gh-pages/vmops/${CI_MACHINE_TYPE}/${GIT_REV_CURRENT}/"
 rm -rf ${DEPLOY_DIR}
-mkdir ${DEPLOY_DIR}
+mkdir -p ${DEPLOY_DIR}
 cp gh-pages/vmops/index.markdown ${DEPLOY_DIR}
 
 mv barrelfish_results.csv ${DEPLOY_DIR}
