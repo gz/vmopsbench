@@ -40,7 +40,6 @@ python3 scripts/run_barrelfish.py --cores 1 2 3
 
 rm -rf gh-pages
 git clone -b gh-pages git@nr-gh-pages:gz/vmops-bench.git gh-pages
-CI_MACHINE_TYPE="ryzen5"
 
 export GIT_REV_CURRENT=`git rev-parse --short HEAD`
 export CSV_LINE="`date +%Y-%m-%d`",${GIT_REV_CURRENT},"${CI_MACHINE_TYPE}/${GIT_REV_CURRENT}/index.html"
