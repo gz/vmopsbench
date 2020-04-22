@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex 
 
-pip3 install -r requirements.txt
+pip3 install -r scripts/requirements.txt
 
 make clean
 make
@@ -43,10 +43,10 @@ git clone -b gh-pages git@github.com:gz/vmops-bench.git gh-pages
 CI_MACHINE_TYPE="ryzen5"
 
 export GIT_REV_CURRENT=`git rev-parse --short HEAD`
-export CSV_LINE="`date +%Y-%m-%d`",$GIT_REV_CURRENT,"vmops/$GIT_REV_CURRENT/index.html"
+export CSV_LINE="`date +%Y-%m-%d`",${GIT_REV_CURRENT},"${CI_MACHINE_TYPE}/${GIT_REV_CURRENT}/index.html"
 echo $CSV_LINE >> gh-pages/_data/$CI_MACHINE_TYPE.csv
 
-DEPLOY_DIR="gh-pages/${CI_MACHINE_TYPE}/vmops/${GIT_REV_CURRENT}/"
+DEPLOY_DIR="gh-pages/vmops/${CI_MACHINE_TYPE}/${GIT_REV_CURRENT}/"
 rm -rf ${DEPLOY_DIR}
 mkdir ${DEPLOY_DIR}
 cp gh-pages/vmops/index.markdown ${DEPLOY_DIR}
@@ -56,6 +56,7 @@ mv *.log ${DEPLOY_DIR}
 mv *.csv ${DEPLOY_DIR}
 mv *.pdf ${DEPLOY_DIR}
 mv *.png ${DEPLOY_DIR}
+cp perfdata/*.svg ${DEPLOY_DIR}
 
 cd gh-pages
 git add .

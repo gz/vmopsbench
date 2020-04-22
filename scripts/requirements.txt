@@ -1,2 +1,7 @@
 plotnine
 humanfriendly
+matplotlib
+numpy
+backports-datetime-fromisoformat
+plotnine
+pandas
