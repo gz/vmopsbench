@@ -2,6 +2,9 @@ stages:
   - build
   - benchmark
 
+before_script:
+  - make
+
 build:
   stage: build
   script:
