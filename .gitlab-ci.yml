@@ -1,5 +1,6 @@
 stages:
   - build
+  - benchmark
 
 before_script:
   - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
@@ -10,3 +11,12 @@ build:
   stage: build
   script:
     - make
+
+benchmark:
+  stage: benchmark
+  script:
+    - bash scripts/ci.bash
+  dependencies:
+    - build
+  variables:
+    GIT_STRATEGY: none
