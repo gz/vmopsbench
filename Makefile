@@ -9,7 +9,7 @@ PLATFORM=linux
 
 # Compiler and flags to use
 CC=gcc
-COMMON_CFLAGS=-O3 -Wall -Wextra -std=c17
+COMMON_CFLAGS=-O3 -Wall -Wextra -std=c11
 
 BENCHMARK_FILES=$(wildcard src/benchmarks/*.c)
 
