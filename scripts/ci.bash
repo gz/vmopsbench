@@ -39,7 +39,7 @@ python3 scripts/run_barrelfish.py --cores 1 2 3
 # python3 scripts/run_barrelfish.py --cores 1 2 3 4 (not stable enough)
 
 rm -rf gh-pages
-git clone -b gh-pages git@github.com:gz/vmops-bench.git gh-pages
+git clone -b gh-pages git@nr-gh-pages:gz/vmops-bench.git gh-pages
 CI_MACHINE_TYPE="ryzen5"
 
 export GIT_REV_CURRENT=`git rev-parse --short HEAD`
@@ -47,7 +47,6 @@ export CSV_LINE="`date +%Y-%m-%d`",${GIT_REV_CURRENT},"${CI_MACHINE_TYPE}/${GIT_
 echo $CSV_LINE >> gh-pages/_data/$CI_MACHINE_TYPE.csv
 
 DEPLOY_DIR="gh-pages/vmops/${CI_MACHINE_TYPE}/${GIT_REV_CURRENT}/"
-rm -rf ${DEPLOY_DIR}
 mkdir -p ${DEPLOY_DIR}
 cp gh-pages/vmops/index.markdown ${DEPLOY_DIR}
 
