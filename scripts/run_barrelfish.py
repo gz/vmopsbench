@@ -8,7 +8,7 @@ import shutil
 import pexpect
 
 from plumbum import colors, local
-from plumbum.cmd import git, apt_get, cabal, sudo, mkdir, bash, make
+from plumbum.cmd import git, apt_get, sudo, mkdir, bash, make
 
 #
 # run.py script settings
@@ -117,6 +117,7 @@ def install_deps(args):
     log("Install dependencies")
     args = ['apt-get', '-y', 'install'] + deps
     sudo(*args)
+    from plumbum.cmd import cabal
     cabal['update']()
     cabal['install', 'bytestring-trie', 'pretty-simple']()
 
