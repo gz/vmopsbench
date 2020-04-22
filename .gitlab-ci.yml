@@ -1,0 +1,17 @@
+stages:
+  - build
+  - benchmark
+
+build:
+  stage: build
+  script:
+    - make
+
+benchmark:
+  stage: test
+  script:
+    - bash scripts/ci.bash
+  dependencies:
+    - build
+  variables:
+    GIT_STRATEGY: none
