@@ -39,7 +39,7 @@ python3 scripts/plot.py $CSVFILE
 # python3 scripts/run_barrelfish.py --cores 1 2 3 4 (not stable enough)
 
 rm -rf gh-pages
-git clone -b gh-pages git@nr-gh-pages:gz/vmops-bench.git gh-pages
+git clone -b gh-pages git@vmops-gh-pages:gz/vmops-bench.git gh-pages
 
 export GIT_REV_CURRENT=`git rev-parse --short HEAD`
 export CSV_LINE="`date +%Y-%m-%d`",${GIT_REV_CURRENT},"${CI_MACHINE_TYPE}/${GIT_REV_CURRENT}/index.html"
