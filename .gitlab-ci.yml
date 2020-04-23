@@ -12,7 +12,7 @@ build:
   script:
     - make
 
-benchmark:
+benchmark:skylake2x:
   stage: benchmark
   script:
     - bash scripts/ci.bash
@@ -20,3 +20,17 @@ benchmark:
     - build
   variables:
     GIT_STRATEGY: none
+  tags:
+    - skylake2x
+
+benchmark:skylake4x:
+  stage: benchmark
+  script:
+    - bash scripts/ci.bash
+  dependencies:
+    - build
+  variables:
+    GIT_STRATEGY: none
+  tags:
+    - skylake4x
+
