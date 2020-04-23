@@ -49,7 +49,7 @@ DEPLOY_DIR="gh-pages/vmops/${CI_MACHINE_TYPE}/${GIT_REV_CURRENT}/"
 mkdir -p ${DEPLOY_DIR}
 cp gh-pages/vmops/index.markdown ${DEPLOY_DIR}
 
-mv barrelfish_results.csv ${DEPLOY_DIR}
+#mv barrelfish_results.csv ${DEPLOY_DIR}
 mv *.log ${DEPLOY_DIR}
 mv *.csv ${DEPLOY_DIR}
 mv *.pdf ${DEPLOY_DIR}
