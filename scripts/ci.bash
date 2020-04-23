@@ -33,9 +33,9 @@ for cores in `seq 0 8 $MAX_CORES`; do
 done
 python3 scripts/plot.py $CSVFILE
 
-python3 scripts/run_barrelfish.py --cores 1 --verbose --hake
-python3 scripts/run_barrelfish.py --cores 1 2
-python3 scripts/run_barrelfish.py --cores 1 2 3
+# python3 scripts/run_barrelfish.py --cores 1 --verbose --hake
+# python3 scripts/run_barrelfish.py --cores 1 2
+# python3 scripts/run_barrelfish.py --cores 1 2 3
 # python3 scripts/run_barrelfish.py --cores 1 2 3 4 (not stable enough)
 
 rm -rf gh-pages
