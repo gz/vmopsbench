@@ -1,6 +1,6 @@
-# vmops-bench
+# fs-bench
 
-Virtual Memory Operations Benchmark
+File System Operations Benchmark
 
 
 # LICENSE
@@ -12,7 +12,7 @@ See attached LICENSE file.
 
 # AUTHORS
 
-Reto Achermann, Gerd Zellweger
+Ankit Bhardwaj, Gerd Zellweger
 
 
 # DEPENDENCIES

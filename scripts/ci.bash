@@ -26,17 +26,9 @@ memsize='4096'
 LOGFILE=results_${benchmark}.log
 CSVFILE=results_${benchmark}.csv
 
-echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $CSVFILE
-for cores in `seq 0 8 $MAX_CORES`; do
-    cat /proc/interrupts | grep TLB | tee -a $LOGFILE;
-    (./bin/vmops -p $cores -t $DURATION_MS -m $memsize -b ${benchmark} ${numa} ${huge} | tee -a $CSVFILE) 3>&1 1>&2 2>&3 | tee -a $LOGFILE
-done
+# Run benchmarks here
 python3 scripts/plot.py $CSVFILE
 
-# python3 scripts/run_barrelfish.py --cores 1 --verbose --hake
-# python3 scripts/run_barrelfish.py --cores 1 2
-# python3 scripts/run_barrelfish.py --cores 1 2 3
-# python3 scripts/run_barrelfish.py --cores 1 2 3 4 (not stable enough)
 
 rm -rf gh-pages
 git clone -b gh-pages git@vmops-gh-pages:gz/vmops-bench.git gh-pages
