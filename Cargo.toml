@@ -1,0 +1,25 @@
+[package]
+name = "fsbench"
+version = "0.1.0"
+authors = ["Ankit Bhardwaj <bhrdwj.ankit@gmail.com>"]
+edition = "2018"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+autobenches = false
+
+[[bench]]
+name = "fxmark"
+path = "src/fxmark.rs"
+harness = false
+
+[profile.bench]
+debug = true
+
+[dev-dependencies]
+hwloc = "0.5"
+num_cpus = "1.12"
+x86 = "0.29"
+core_affinity = "0.5.10"
+serde = { version = "1", features = ["derive"] }
+clap = { version = "2", features = ["yaml"] }
+libc = "0.2.69"
