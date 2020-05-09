@@ -10,7 +10,8 @@ before_script:
 build:
   stage: build
   script:
-    - make
+    - cargo +nightly fmt -- --check
+    - cargo bench --no-run
 
 benchmark:skylake2x:
   stage: benchmark
