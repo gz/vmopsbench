@@ -6,6 +6,7 @@ before_script:
   - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
   - eval $(ssh-agent -s)
   - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+  - export GIT_HASH=`git rev-parse --short HEAD`
 
 build:
   stage: build
