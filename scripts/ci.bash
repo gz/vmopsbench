@@ -33,10 +33,14 @@ for cores in `seq 0 8 $MAX_CORES`; do
 done
 python3 scripts/plot.py $CSVFILE
 
-# python3 scripts/run_barrelfish.py --cores 1 --verbose --hake
-# python3 scripts/run_barrelfish.py --cores 1 2
-# python3 scripts/run_barrelfish.py --cores 1 2 3
-# python3 scripts/run_barrelfish.py --cores 1 2 3 4 (not stable enough)
+python3 scripts/run_barrelfish.py --cores 1 --verbose --hake
+python3 scripts/run_barrelfish.py --cores 1 2
+python3 scripts/run_barrelfish.py --cores 1 2 3
+python3 scripts/run_barrelfish.py --cores 1 2 3 4
+python3 scripts/run_barrelfish.py --cores 1 2 3 4 5
+python3 scripts/run_barrelfish.py --cores 1 2 3 4 5 6
+python3 scripts/run_barrelfish.py --cores 1 2 3 4 5 6 7
+python3 scripts/run_barrelfish.py --cores 1 2 3 4 5 6 7 8
 
 rm -rf gh-pages
 git clone -b gh-pages git@vmops-gh-pages:gz/vmops-bench.git gh-pages
