@@ -1,21 +1,23 @@
+use clap::{crate_version, value_t, App, Arg};
 use std::collections::HashMap;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
 use std::sync::{Arc, Barrier};
 use std::thread;
-use std::time::Duration;
 
 mod utils;
 use utils::topology::ThreadMapping;
 use utils::topology::*;
 
-mod bench;
-use bench::DRBH;
+mod drbh;
+mod drbl;
+use drbh::DRBH;
+use drbl::DRBL;
 
 pub trait Bench {
-    fn init(&self);
-    fn run(&self, b: Arc<Barrier>, duration: Duration) -> Vec<usize>;
+    fn init(&self, cores: Vec<u64>);
+    fn run(&self, b: Arc<Barrier>, duration: u64, core: u64) -> Vec<usize>;
 }
 
 struct BenchMark<T>
@@ -24,9 +26,9 @@ where
 {
     /// Thread assignments.
     thread_mappings: Vec<ThreadMapping>,
-    /// # Threads.
+    /// Threads-ids to execute the benchmark.
     threads: Vec<usize>,
-    ///
+    /// Benchmark to run.
     bench: T,
 }
 
@@ -101,7 +103,14 @@ where
         self
     }
 
-    pub fn report_bench(&self, file_name: &str, ts: usize, result: &HashMap<u64, Vec<usize>>) {
+    pub fn report_bench(
+        &self,
+        name: &str,
+        duration: u64,
+        file_name: &str,
+        ts: usize,
+        result: &HashMap<u64, Vec<usize>>,
+    ) {
         // Append parsed results to a CSV file
         let write_headers = !Path::new(file_name).exists();
         let mut csv_file = OpenOptions::new()
@@ -127,7 +136,7 @@ where
                 let r = csv_file.write(
                     format!(
                         "{},{:?},{},{},{},{},{}",
-                        *core, "drbh", ts, 4096, 10, time, ops
+                        *core, name, ts, 4096, duration, time, ops
                     )
                     .as_bytes(),
                 );
@@ -140,11 +149,9 @@ where
     }
 
     /// Start the benchmark
-    pub fn start(&mut self) {
+    pub fn start(&mut self, duration: u64, name: &str, file_name: &str) {
         let topology = MachineTopology::new();
         utils::disable_dvfs();
-        let file_name = "fsops_benchmark.csv";
-        let _ret = std::fs::remove_file(file_name);
 
         for tm in self.thread_mappings.iter() {
             for ts in self.threads.iter() {
@@ -155,7 +162,7 @@ where
                 // Need a barrier to synchronize starting of threads
                 let barrier = Arc::new(Barrier::new(*ts));
                 let mut children = Vec::new();
-                self.bench.init();
+                self.bench.init(cores.clone());
 
                 for core in cores {
                     let b = barrier.clone();
@@ -163,7 +170,7 @@ where
 
                     children.push(thread::spawn(move || {
                         utils::pin_thread(core);
-                        (core, bench.run(b, Duration::from_secs(10)))
+                        (core, bench.run(b, duration, core))
                     }));
                 }
 
@@ -172,15 +179,60 @@ where
                     let (core, iops) = child.join().unwrap();
                     result.insert(core, iops);
                 }
-                self.report_bench(file_name, *ts, &result);
+                self.report_bench(name, duration, file_name, *ts, &result);
             }
         }
     }
 }
 
 fn main() {
-    BenchMark::<DRBH>::new()
-        .thread_defaults()
-        .thread_mapping(ThreadMapping::Interleave)
-        .start();
+    // Example to run the benchmark for 10 seconds, type drbl and drbh
+    // `cargo bench --bench fxmark -- --duration 10 --type drbl drbh`
+    let args = std::env::args().filter(|e| e != "--bench");
+    let matches = App::new("Fxmark file-system benchmark")
+        .version(crate_version!())
+        .author("Jon Gjengset <jon@thesquareplanet.com>, Gerd Zellweger <mail@gerdzellweger.com>")
+        .about("Benchmark file-systems using different levels of read-write contention")
+        .arg(
+            Arg::with_name("duration")
+                .short("d")
+                .long("duration")
+                .required(true)
+                .help("Duration for each run")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("type")
+                .short("t")
+                .long("type")
+                .multiple(true)
+                .takes_value(true)
+                .required(true)
+                .possible_values(&["drbl", "drbh"])
+                .help("Which benchmark to run(ex: drbl, drbh)."),
+        )
+        .get_matches_from(args);
+
+    let duration = value_t!(matches, "duration", u64).unwrap_or_else(|e| e.exit());
+    let versions: Vec<&str> = match matches.values_of("type") {
+        Some(iter) => iter.collect(),
+        None => unreachable!(),
+    };
+
+    let file_name = "fsops_benchmark.csv";
+    let _ret = std::fs::remove_file(file_name);
+
+    if versions.contains(&"drbl") {
+        BenchMark::<DRBL>::new()
+            .thread_defaults()
+            .thread_mapping(ThreadMapping::Interleave)
+            .start(duration, "drbl", file_name);
+    }
+
+    if versions.contains(&"drbh") {
+        BenchMark::<DRBH>::new()
+            .thread_defaults()
+            .thread_mapping(ThreadMapping::Interleave)
+            .start(duration, "drbh", file_name);
+    }
 }

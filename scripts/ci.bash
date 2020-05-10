@@ -11,7 +11,7 @@ sudo mount tmpfs /mnt -t tmpfs -o size=50G
 benchmark='drbh'
 CSVFILE=fsops_benchmark.csv
 
-RUST_TEST_THREADS=1 cargo bench --bench fxmark
+RUST_TEST_THREADS=1 cargo bench --bench fxmark -- --duration 10 --type drbl drbh
 python3 scripts/plot.py $CSVFILE
 
 # Unmount tmpfs

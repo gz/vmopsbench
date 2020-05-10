@@ -20,7 +20,7 @@ impl Default for DRBH {
 }
 
 impl Bench for DRBH {
-    fn init(&self) {
+    fn init(&self, _cores: Vec<u64>) {
         unsafe {
             let _a = remove(self.path.as_ptr() as *const i8);
             let fd = open(self.path.as_ptr() as *const i8, O_CREAT | O_RDWR, S_IRWXU);
@@ -37,8 +37,8 @@ impl Bench for DRBH {
         }
     }
 
-    fn run(&self, b: Arc<Barrier>, duration: Duration) -> Vec<usize> {
-        let mut secs = duration.as_secs() as usize;
+    fn run(&self, b: Arc<Barrier>, duration: u64, _core: u64) -> Vec<usize> {
+        let mut secs = duration as usize;
         let mut iops = Vec::with_capacity(secs);
 
         unsafe {
@@ -55,7 +55,9 @@ impl Bench for DRBH {
                 let start = Instant::now();
                 let end_experiment = start + Duration::from_secs(1);
                 while Instant::now() < end_experiment {
-                    pread(fd, page.as_ptr() as *mut c_void, page_size, 0);
+                    if pread(fd, page.as_ptr() as *mut c_void, page_size, 0) != page_size as isize {
+                        panic!("DRBH: pread() failed");
+                    };
                     ops += 1;
                 }
                 iops.push(ops);
