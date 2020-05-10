@@ -155,11 +155,11 @@ where
                 // Need a barrier to synchronize starting of threads
                 let barrier = Arc::new(Barrier::new(*ts));
                 let mut children = Vec::new();
+                self.bench.init();
 
                 for core in cores {
                     let b = barrier.clone();
                     let bench = self.bench.clone();
-                    bench.init();
 
                     children.push(thread::spawn(move || {
                         utils::pin_thread(core);
@@ -181,6 +181,6 @@ where
 fn main() {
     BenchMark::<DRBH>::new()
         .thread_defaults()
-        .thread_mapping(ThreadMapping::Sequential)
+        .thread_mapping(ThreadMapping::Interleave)
         .start();
 }
