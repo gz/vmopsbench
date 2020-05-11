@@ -15,7 +15,7 @@
 #include "benchmarks.h"
 #include "utils.h"
 
-#define DEFAULT_NOPS (1000000)
+#define DEFAULT_NOPS (500000)
 
 
 static void *bench_run_fn(struct vmops_bench_run_arg *args)
