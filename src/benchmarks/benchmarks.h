@@ -21,9 +21,9 @@
 struct vmops_bench_cfg {
     const char *benchmark;
     uint32_t *coreslist;
-    uint32_t  corelist_size;
+    uint32_t corelist_size;
     size_t memsize;
-    size_t nmaps;
+    size_t nops;
     uint32_t time_ms;
     uint32_t stats;
     uint32_t rate;
@@ -35,16 +35,14 @@ struct vmops_bench_cfg {
     bool numainterleave;
 };
 
-struct statval
-{
+struct statval {
     uint32_t tid;
     plat_time_t t_elapsed;
     uint64_t counter;
     plat_time_t val;
 };
 
-struct vmops_stats
-{
+struct vmops_stats {
     struct statval *values;
     size_t idx;
     size_t idx_max;
@@ -54,8 +52,7 @@ struct vmops_stats
 
 #define VMOPS_STATS_MAX 10000000
 
-struct vmops_bench_run_arg
-{
+struct vmops_bench_run_arg {
     struct vmops_bench_cfg *cfg;
     plat_memobj_t memobj;
     plat_thread_t thread;
@@ -76,8 +73,7 @@ struct vmops_bench_run_arg
  *
  * @returns 0 success, -1 error
  */
-int vmpos_bench_run_mapunmap(struct vmops_bench_cfg *cfg,
-                             const char *opts);
+int vmpos_bench_run_mapunmap(struct vmops_bench_cfg *cfg, const char *opts);
 
 /**
  * @brief starts the page protection benchmark

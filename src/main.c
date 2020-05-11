@@ -22,7 +22,7 @@ static struct vmops_bench_cfg cfg = { .memsize = 4096,
                                       .time_ms = 10,
                                       .stats = 0,
                                       .nounmap = false,
-                                      .nmaps = 1,
+                                      .nops = 0,
                                       .rate = 0,
                                       .map4k = false,
                                       .maphuge = false,
@@ -136,7 +136,8 @@ int main(int argc, char *argv[])
             cfg.memsize = strtoul(optarg, NULL, 10);
             break;
         case 'n':
-            cfg.nmaps = strtoul(optarg, NULL, 10);
+            cfg.nops = strtoul(optarg, NULL, 10);
+            cfg.time_ms = 0;
             break;
         case 'b':
             cfg.benchmark = optarg;
@@ -205,6 +206,7 @@ int main(int argc, char *argv[])
     LOG_PRINT("benchmark: %s\n", cfg.benchmark);
     LOG_PRINT("memsize:   %zu\n", cfg.memsize);
     LOG_PRINT("time:      %d ms\n", cfg.time_ms);
+    LOG_PRINT("nops:      %zu\n", cfg.nops);
     LOG_PRINT("ncores:    %d\n", cfg.corelist_size);
     LOG_PRINT("cores:     [ %d", cfg.coreslist[0]);
     for (uint32_t i = 1; i < cfg.corelist_size; i++) {
