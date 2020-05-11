@@ -1,6 +1,6 @@
 # vmops-bench
 
-Virtual Memory Operations Benchmark
+Virtual Memory Operations Benchmark.
 
 
 # LICENSE
