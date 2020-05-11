@@ -83,8 +83,18 @@ int vmpos_bench_run_mapunmap(struct vmops_bench_cfg *cfg, const char *opts);
  *
  * @returns 0 success, -1 error
  */
-int vmops_bench_run_protect(struct vmops_bench_cfg *cfg,
-                              const char *opts);
+int vmops_bench_run_protect(struct vmops_bench_cfg *cfg, const char *opts);
+
+
+/**
+ * @brief starts the page protection benchmark elevatin only
+ *
+ * @param cfg   the benchmark configuration
+ * @param opts  the options for the benchmark
+ *
+ * @returns 0 success, -1 error
+ */
+int vmops_bench_run_protect_elevate(struct vmops_bench_cfg *cfg, const char *opts);
 
 
 #endif /* __VMOPS_BENCHMARKS_H_ */
