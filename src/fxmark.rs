@@ -10,12 +10,8 @@ mod utils;
 use utils::topology::ThreadMapping;
 use utils::topology::*;
 
-mod drbh;
-mod drbl;
-mod dwal;
-use drbh::DRBH;
-use drbl::DRBL;
-use dwal::DWAL;
+mod bench;
+use bench::{drbh::DRBH, drbl::DRBL, dwal::DWAL};
 
 pub trait Bench {
     fn init(&self, cores: Vec<u64>);
