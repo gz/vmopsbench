@@ -12,8 +12,10 @@ use utils::topology::*;
 
 mod drbh;
 mod drbl;
+mod dwal;
 use drbh::DRBH;
 use drbl::DRBL;
+use dwal::DWAL;
 
 pub trait Bench {
     fn init(&self, cores: Vec<u64>);
@@ -208,7 +210,7 @@ fn main() {
                 .multiple(true)
                 .takes_value(true)
                 .required(true)
-                .possible_values(&["drbl", "drbh"])
+                .possible_values(&["drbl", "drbh", "dwal"])
                 .help("Which benchmark to run(ex: drbl, drbh)."),
         )
         .get_matches_from(args);
@@ -234,5 +236,12 @@ fn main() {
             .thread_defaults()
             .thread_mapping(ThreadMapping::Interleave)
             .start(duration, "drbh", file_name);
+    }
+
+    if versions.contains(&"dwal") {
+        BenchMark::<DWAL>::new()
+            .thread_defaults()
+            .thread_mapping(ThreadMapping::Interleave)
+            .start(duration, "dwal", file_name);
     }
 }
