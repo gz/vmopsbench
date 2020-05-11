@@ -11,7 +11,7 @@ use utils::topology::ThreadMapping;
 use utils::topology::*;
 
 mod bench;
-use bench::{drbh::DRBH, drbl::DRBL, dwal::DWAL};
+use bench::{drbh::DRBH, drbl::DRBL, dwal::DWAL, dwol::DWOL, dwom::DWOM};
 
 pub trait Bench {
     fn init(&self, cores: Vec<u64>);
@@ -206,8 +206,8 @@ fn main() {
                 .multiple(true)
                 .takes_value(true)
                 .required(true)
-                .possible_values(&["drbl", "drbh", "dwal"])
-                .help("Which benchmark to run(ex: drbl, drbh)."),
+                .possible_values(&["drbl", "drbh", "dwol", "dwom", "dwal"])
+                .help("Benchmark to run."),
         )
         .get_matches_from(args);
 
@@ -220,6 +220,7 @@ fn main() {
     let file_name = "fsops_benchmark.csv";
     let _ret = std::fs::remove_file(file_name);
 
+    // Read a block in a private file
     if versions.contains(&"drbl") {
         BenchMark::<DRBL>::new()
             .thread_defaults()
@@ -227,6 +228,7 @@ fn main() {
             .start(duration, "drbl", file_name);
     }
 
+    // Read a shared block in a shared file
     if versions.contains(&"drbh") {
         BenchMark::<DRBH>::new()
             .thread_defaults()
@@ -234,6 +236,23 @@ fn main() {
             .start(duration, "drbh", file_name);
     }
 
+    // Overwrite a block in a private file
+    if versions.contains(&"dwol") {
+        BenchMark::<DWOL>::new()
+            .thread_defaults()
+            .thread_mapping(ThreadMapping::Interleave)
+            .start(duration, "dwol", file_name);
+    }
+
+    // Overwrite a private block in a shared file
+    if versions.contains(&"dwom") {
+        BenchMark::<DWOM>::new()
+            .thread_defaults()
+            .thread_mapping(ThreadMapping::Interleave)
+            .start(duration, "dwom", file_name);
+    }
+
+    // Append a block in a private file
     if versions.contains(&"dwal") {
         BenchMark::<DWAL>::new()
             .thread_defaults()

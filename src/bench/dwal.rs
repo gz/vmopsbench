@@ -1,3 +1,4 @@
+use super::PAGE_SIZE;
 use crate::Bench;
 use libc::*;
 use std::cell::RefCell;
@@ -49,8 +50,7 @@ impl Bench for DWAL {
             if fd == -1 {
                 panic!("Unable to open a file");
             }
-            let page_size = 4096;
-            let page: &mut [i8; 4096] = &mut [0; 4096];
+            let page: &mut [i8; PAGE_SIZE] = &mut [0; PAGE_SIZE];
 
             b.wait();
             while secs > 0 {
@@ -58,10 +58,13 @@ impl Bench for DWAL {
                 let start = Instant::now();
                 let end_experiment = start + Duration::from_secs(1);
                 while Instant::now() < end_experiment {
-                    if write(fd, page.as_ptr() as *mut c_void, page_size) != page_size as isize {
-                        panic!("DWAL: write() failed");
+                    for _i in 0..128 {
+                        if write(fd, page.as_ptr() as *mut c_void, PAGE_SIZE) != PAGE_SIZE as isize
+                        {
+                            panic!("DWAL: write() failed");
+                        }
+                        ops += 1;
                     }
-                    ops += 1;
                 }
                 iops.push(ops);
                 secs -= 1;

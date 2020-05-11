@@ -6,19 +6,19 @@ use std::sync::{Arc, Barrier};
 use std::time::{Duration, Instant};
 
 #[derive(Clone)]
-pub struct DRBL {
+pub struct DWOL {
     path: &'static str,
     page: Vec<u8>,
     fds: RefCell<Vec<c_int>>,
 }
 
-unsafe impl Sync for DRBL {}
+unsafe impl Sync for DWOL {}
 
-impl Default for DRBL {
-    fn default() -> DRBL {
+impl Default for DWOL {
+    fn default() -> DWOL {
         let page = vec![0xb; PAGE_SIZE];
         let fd = vec![-1; 512];
-        DRBL {
+        DWOL {
             // It doesn't work if trailing \0 isn't there in the filename.
             path: "/mnt",
             page,
@@ -27,7 +27,7 @@ impl Default for DRBL {
     }
 }
 
-impl Bench for DRBL {
+impl Bench for DWOL {
     fn init(&self, cores: Vec<u64>) {
         unsafe {
             for core in cores {
@@ -38,8 +38,7 @@ impl Bench for DRBL {
                 if fd == -1 {
                     panic!("Unable to create a file");
                 }
-                let len = self.page.len();
-                if write(fd, self.page.as_ptr() as *const c_void, len) != len as isize {
+                if write(fd, self.page.as_ptr() as *const c_void, PAGE_SIZE) != PAGE_SIZE as isize {
                     panic!("Write failed");
                 }
                 self.fds.borrow_mut()[core as usize] = fd;
@@ -66,10 +65,10 @@ impl Bench for DRBL {
                 while Instant::now() < end_experiment {
                     // pread for 128 times to reduce rdtsc overhead.
                     for _i in 0..128 {
-                        if pread(fd, page.as_ptr() as *mut c_void, PAGE_SIZE, 0)
+                        if pwrite(fd, page.as_ptr() as *mut c_void, PAGE_SIZE, 0)
                             != PAGE_SIZE as isize
                         {
-                            panic!("DRBL: pread() failed");
+                            panic!("DWOL: pwrite() failed");
                         }
                         ops += 1;
                     }
@@ -82,7 +81,7 @@ impl Bench for DRBL {
             let filename = format!("{}/file{}.txt\0", self.path, core);
             if remove(filename.as_ptr() as *const i8) != 0 {
                 panic!(
-                    "DRBL: Unable to remove file, errno: {}",
+                    "DWOL: Unable to remove file, errno: {}",
                     nix::errno::errno()
                 );
             }
