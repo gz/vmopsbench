@@ -12,6 +12,7 @@
         "src/main.c",
         "src/benchmarks/mapunmap.c",
         "src/benchmarks/protect.c",
+        "src/benchmarks/elevate.c",
         "src/benchmarks/utils.c",
         "src/platform/barrelfish.c"
     ],
@@ -26,6 +27,7 @@
         "src/main.c",
         "src/benchmarks/mapunmap.c",
         "src/benchmarks/protect.c",
+        "src/benchmarks/elevate.c",
         "src/benchmarks/utils.c",
         "src/platform/barrelfish.c"
     ],
@@ -41,6 +43,7 @@
         "src/main.c",
         "src/benchmarks/mapunmap.c",
         "src/benchmarks/protect.c",
+        "src/benchmarks/elevate.c",
         "src/benchmarks/utils.c",
         "src/platform/barrelfish.c"
     ],
