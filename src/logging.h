@@ -73,7 +73,9 @@
             _b, _m, _t, _n, _o, _thpt)
 
 #define LOG_CSV_HEADER()                                                                          \
-    fprintf(stderr, "===================== BEGIN CSV =====================\n");
+    fprintf(stderr, "===================== BEGIN CSV =====================\n");                   \
+    fprintf(stdout, "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_"  \
+                    "size,memobj,isolation,duration,operations\n");
 
 #define LOG_CSV_FOOTER()                                                                          \
     fprintf(stderr, "====================== END CSV ======================\n");
