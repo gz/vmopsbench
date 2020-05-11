@@ -41,14 +41,14 @@ done
 
 # Run Barrelfish experiments
 if [ "$CI_MACHINE_TYPE" = "skylake4x" ]; then
-    python3 scripts/run_barrelfish.py --cores 1 --verbose --hake
-    python3 scripts/run_barrelfish.py --cores 1 2
-    python3 scripts/run_barrelfish.py --cores 1 2 3
-    python3 scripts/run_barrelfish.py --cores 1 2 3 4
-    python3 scripts/run_barrelfish.py --cores 1 2 3 4 5
-    python3 scripts/run_barrelfish.py --cores 1 2 3 4 5 6
-    python3 scripts/run_barrelfish.py --cores 1 2 3 4 5 6 7
-    python3 scripts/run_barrelfish.py --cores 1 2 3 4 5 6 7 8
+
+for benchmark in $benchmarks; do
+    python3 scripts/run_barrelfish.py --benchmark $benchmark --cores 1 --verbose --hake
+    for corecount in 2 4 8 16 24 32; do
+    	cores=`seq 0 1 $corecount`
+		python3 scripts/run_barrelfish.py --benchmark $benchmark --cores $cores 
+    done
+done
 else
     echo "skip bf on skylake2x for now"
 ## Ideally we build this stuff in docker (since we require ubuntu 19.10 but skylake2x are on 18.04):

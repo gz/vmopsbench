@@ -59,6 +59,8 @@ parser.add_argument("-n", "--norun", action="store_true",
                     help="Only build, don't run")
 parser.add_argument("-c", "--cores", type=int, nargs='+',
                     help="How many cores to run on")
+parser.add_argument("-b", "--benchmark",
+                    help="How many cores to run on")
 parser.add_argument("--hake", action="store_true", default=False,
                     help="Run hake to regen Makefile")
 
@@ -173,7 +175,7 @@ def run_barrelfish(args):
     log("Running Barrelfish {}".format(args.cores))
     for i in args.cores:
         with open(MENU_LST_PATH, 'w') as menu_lst_file:
-            my_menu = MENU_LST.format(i, 10000, 'maponly-isolated')
+            my_menu = MENU_LST.format(i, 10000, args.benchmark)
             if args.verbose:
                 print("Using the following generated menu.lst")
                 print(my_menu)
