@@ -19,7 +19,7 @@ benchmark:skylake2x:
   dependencies:
     - build
   variables:
-    GIT_STRATEGY: none
+    GIT_STRATEGY: fetch
   tags:
     - skylake2x
 
@@ -30,7 +30,7 @@ benchmark:skylake4x:
   dependencies:
     - build
   variables:
-    GIT_STRATEGY: none
+    GIT_STRATEGY: fetch
   tags:
     - skylake4x
 
