@@ -616,13 +616,24 @@ plat_thread_t plat_thread_start(plat_thread_fn_t run, struct vmops_bench_run_arg
         }
     }
 
+    for (size_t i = 0; i < 16; i++) {
+        event_dispatch_non_block(get_default_waitset());
+        thread_yield();
+    }
 
-    LOG_INFO("creating thread on\n");
+
+    LOG_INFO("creating thread on core %u...\n", coreid);
     err = domain_thread_create_on(coreid, plat_thread_run_fn, thread, &thread->thread);
     if (err_is_fail(err)) {
         DEBUG_ERR(err, "failed to create the thread\n");
+        USER_PANIC_ERR(err, "failed to create the thread\n");
         free(thread);
         return NULL;
+    }
+
+    for (size_t i = 0; i < 16; i++) {
+        event_dispatch_non_block(get_default_waitset());
+        thread_yield();
     }
 
     return (plat_thread_t)thread;
