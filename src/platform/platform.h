@@ -280,6 +280,10 @@ plat_error_t plat_thread_cancel(plat_thread_t thread);
 ///< defines a time value
 typedef uint64_t plat_time_t;
 
+
+///< maximum platform time
+#define PLAT_TIME_MAX (UINT64_MAX)
+
 /**
  * @brief reads the time time
  *

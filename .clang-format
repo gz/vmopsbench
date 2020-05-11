@@ -19,14 +19,15 @@ AlwaysBreakBeforeMultilineStrings: false
 BasedOnStyle: WebKit
 BinPackArguments: true
 BinPackParameters: true
+BreakBeforeBraces: Custom
 BraceWrapping:
   AfterClass:      false
   AfterControlStatement: false
   AfterEnum:       false
   AfterFunction:   true
-  AfterNamespace:  false
-  AfterStruct:     false
-  AfterUnion:      false
+  AfterNamespace:  true
+  AfterStruct:     true
+  AfterUnion:      true
   AfterExternBlock: false
   BeforeCatch:     false
   BeforeElse:      false
@@ -35,7 +36,6 @@ BraceWrapping:
   SplitEmptyRecord: false
   SplitEmptyNamespace: false
 BreakBeforeBinaryOperators: All
-BreakBeforeBraces: WebKit
 BreakBeforeTernaryOperators: true
 BreakAfterJavaFieldAnnotations: false
 BreakStringLiterals: true
