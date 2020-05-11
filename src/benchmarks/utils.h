@@ -52,7 +52,7 @@ char *vmops_utils_print_options(struct vmops_bench_cfg *cfg);
  * @param args          the benchmark arguments
  * @param total_ops     the total number of operations executed
  */
-void vmops_utils_print_csv(struct vmops_bench_run_arg *args, size_t total_ops);
+void vmops_utils_print_csv(struct vmops_bench_run_arg *args);
 
 
 /*

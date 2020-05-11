@@ -120,13 +120,16 @@ static int paircmp(const void *_p1, const void *_p2)
  * @param args          the benchmark arguments
  * @param total_ops     the total number of operations executed
  */
-void vmops_utils_print_csv(struct vmops_bench_run_arg *args, size_t total_ops)
+void vmops_utils_print_csv(struct vmops_bench_run_arg *args)
 {
     if (args == NULL || args->cfg == NULL) {
         return;
     }
 
     struct vmops_bench_cfg *cfg = args->cfg;
+
+    size_t total_ops = 0;
+    double total_time = 0;
 
     LOG_CSV_HEADER();
     for (uint32_t i = 0; i < cfg->corelist_size; i++) {
@@ -136,9 +139,12 @@ void vmops_utils_print_csv(struct vmops_bench_run_arg *args, size_t total_ops)
         }
 
         LOG_CSV(cfg, i, args[i].duration, args[i].count);
+
+        total_ops += args[i].count;
+        total_time += args[i].duration;
     }
     LOG_CSV_FOOTER();
-    LOG_RESULT(cfg->benchmark, cfg->memsize, cfg->time_ms, cfg->corelist_size, total_ops);
+    LOG_RESULT(cfg->benchmark, cfg->memsize, total_time, cfg->corelist_size, total_ops, (float)(total_ops * 1000)/total_time);
 
     struct statval *pairs = args[0].stats.values;
     if (cfg->stats && pairs) {

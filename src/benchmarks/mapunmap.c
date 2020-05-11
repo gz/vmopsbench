@@ -378,16 +378,7 @@ int vmpos_bench_run_mapunmap(struct vmops_bench_cfg *cfg, const char *opts)
         return -1;
     }
 
-
-    size_t total_ops = 0;
-    for (uint32_t i = 0; i < cfg->corelist_size; i++) {
-        if (args[i].thread != NULL) {
-            total_ops += args[i].count;
-        }
-    }
-
-    LOG_INFO("Benchmark done. total ops = %zu\n", total_ops);
-    vmops_utils_print_csv(args, total_ops);
+    vmops_utils_print_csv(args);
 
     vmops_utils_cleanup_args(args);
 
