@@ -65,12 +65,12 @@
 #define LOG_PRINT_END(...) fprintf(stderr, __VA_ARGS__)
 
 
-#define RESULT_FMT_STRING "benchmark=%s, memsize=%zu, time=%d, ncores=%d, ops=%zu"
+#define RESULT_FMT_STRING "benchmark=%s, memsize=%zu, time=%.2f, ncores=%d, ops=%zu, thpt=%.2f"
 
-#define LOG_RESULT(_b, _m, _t, _n, _o)                                                             \
+#define LOG_RESULT(_b, _m, _t, _n, _o, _thpt)                                                      \
     fprintf(stderr,                                                                                \
             VMOPS_PRINT_PREFIX COLOR_RESULT "RESULT [[ " RESULT_FMT_STRING " ]]" COLOR_RESET "\n", \
-            _b, _m, _t, _n, _o)
+            _b, _m, _t, _n, _o, _thpt)
 
 #define LOG_CSV_HEADER()                                                                          \
     fprintf(stderr, "===================== BEGIN CSV =====================\n");
