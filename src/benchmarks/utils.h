@@ -135,7 +135,7 @@ static inline void vmops_utils_add_stats(struct vmops_stats *stats, uint32_t tid
         return;
     }
 
-    stats->values[stats->idx] = (struct statval){tid, t_elapsed, ops, val};
+    stats->values[stats->idx] = (struct statval) { tid, t_elapsed, ops, val };
     stats->idx++;
     stats->sampling_next = t_elapsed + stats->sampling_delta;
 }
