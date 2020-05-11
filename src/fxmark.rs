@@ -156,6 +156,7 @@ where
                 let cpus = topology.allocate(*tm, *ts, true);
                 let cores: Vec<u64> = cpus.iter().map(|c| c.cpu).collect();
                 let mut result: HashMap<u64, Vec<usize>> = HashMap::with_capacity(*ts);
+                println!("Run Benchmark={} TM={} Cores={}", name, *tm, ts);
 
                 // Need a barrier to synchronize starting of threads
                 let barrier = Arc::new(Barrier::new(*ts));
