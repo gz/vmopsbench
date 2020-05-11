@@ -45,7 +45,7 @@ module /x86_64/sbin/corectrl auto
 # module /x86_64/sbin/ahcid auto
 
 #
-module /x86_64/sbin/vmops_array_mcn -p {} -t {} -b {}
+module /x86_64/sbin/vmops_array_mcn -p {} {} -b {}
 """
 
 #
@@ -61,6 +61,10 @@ parser.add_argument("-c", "--cores", type=int, nargs='+',
                     help="How many cores to run on")
 parser.add_argument("-b", "--benchmark",
                     help="How many cores to run on")
+parser.add_argument("-n", "--nops", type=int, default=-1,
+                    help="how many operations should be done")
+parser.add_argument("-t", "--time", type=int, default=-1,
+                    help="how long to run the benchmark")
 parser.add_argument("--hake", action="store_true", default=False,
                     help="Run hake to regen Makefile")
 
@@ -175,7 +179,14 @@ def run_barrelfish(args):
     log("Running Barrelfish {}".format(args.cores))
     for i in args.cores:
         with open(MENU_LST_PATH, 'w') as menu_lst_file:
-            my_menu = MENU_LST.format(i, 10000, args.benchmark)
+        	if args.nops != -1 :
+        		bench_arg = "-n %d -s %d -r 0" % (args.nops, args.nops)
+        	elif args.time != -1 :
+				bench_arg = "-t %d" % args.time
+        	else :
+				bench_arg = "-t 10000"
+				
+            my_menu = MENU_LST.format(i, bench_arg, args.benchmark)
             if args.verbose:
                 print("Using the following generated menu.lst")
                 print(my_menu)

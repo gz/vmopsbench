@@ -15,6 +15,7 @@ rm *.log *.csv *.png *.pdf /dev/shm/vmops_bench_* || true
 sudo sysctl -w vm.max_map_count=50000000
 echo 192 | sudo tee  /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
 
+SAMPLES=1000
 DURATION_MS=10000
 MAX_CORES=`nproc`
 
@@ -39,6 +40,21 @@ for benchmark in $benchmarks; do
 done
 
 
+for benchmark in $benchmarks; do
+    echo $benchmark
+
+    LOGFILE=results_${benchmark}_latency.log
+    CSVFILE=results_${benchmark}_latency.csv
+
+    echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $CSVFILE
+    for cores in `seq 0 8 $MAX_CORES`; do
+        cat /proc/interrupts | grep TLB | tee -a $LOGFILE;
+        (./bin/vmops -p $cores -n $SAMPLES -s $SAMPLES -r 0 -m $memsize -b ${benchmark} ${numa} ${huge} | tee -a $CSVFILE) 3>&1 1>&2 2>&3 | tee -a $LOGFILE
+    done
+    python3 scripts/plot.py $CSVFILE
+done
+
+
 # Run Barrelfish experiments
 if [ "$CI_MACHINE_TYPE" = "skylake4x" ]; then
 
@@ -49,6 +65,15 @@ for benchmark in $benchmarks; do
 		python3 scripts/run_barrelfish.py --benchmark $benchmark --cores $cores 
     done
 done
+
+for benchmark in $benchmarks; do
+    python3 scripts/run_barrelfish.py --benchmark $benchmark --cores 1 --verbose --hake
+    for corecount in 2 4 8 16 24 32; do
+    	cores=`seq 0 1 $corecount`
+		python3 scripts/run_barrelfish.py --nops $SAMPLES --benchmark $benchmark --cores $cores 
+    done
+done
+
 else
     echo "skip bf on skylake2x for now"
 ## Ideally we build this stuff in docker (since we require ubuntu 19.10 but skylake2x are on 18.04):
