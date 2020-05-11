@@ -158,6 +158,14 @@ def build_barrelfish(args):
             make(*make_args)
 
 
+
+# #module /x86_64/sbin/vmops_array_mcn -p 3 -b maponly-isolated -n 2000
+# #module /x86_64/sbin/vmops_array_mcn -p 3 -b mapunmap-isolated -n 6000
+# #module /x86_64/sbin/vmops_array_mcn -p 3 -b protect-isolated -n 2000
+# module /x86_64/sbin/vmops_array_mcn -p 3 -b elevate-isolated -m 40960000 -n 10000
+# for the last one: make -m =(4096 * -n)
+
+
 def run_barrelfish(args):
     if args.norun:
         return True
