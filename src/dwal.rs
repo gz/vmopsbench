@@ -16,6 +16,7 @@ impl Default for DWAL {
     fn default() -> DWAL {
         let fd = vec![-1; 512];
         DWAL {
+            // It doesn't work if trailing \0 isn't there in the filename.
             path: "/mnt",
             fds: RefCell::new(fd),
         }
@@ -26,7 +27,7 @@ impl Bench for DWAL {
     fn init(&self, cores: Vec<u64>) {
         unsafe {
             for core in cores {
-                let filename = format!("{}/file{}.dat", self.path, core);
+                let filename = format!("{}/file{}.dat\0", self.path, core);
 
                 let _a = remove(filename.as_ptr() as *const i8);
                 let fd = open(filename.as_ptr() as *const i8, O_CREAT | O_RDWR, S_IRWXU);
@@ -68,8 +69,13 @@ impl Bench for DWAL {
 
             b.wait();
             close(fd);
-            let filename = format!("{}/file{}.dat", self.path, core);
-            remove(filename.as_ptr() as *const i8);
+            let filename = format!("{}/file{}.dat\0", self.path, core);
+            if remove(filename.as_ptr() as *const i8) != 0 {
+                panic!(
+                    "DWAL: Unable to remove file, errno: {}",
+                    nix::errno::errno()
+                );
+            }
         }
 
         iops.clone()

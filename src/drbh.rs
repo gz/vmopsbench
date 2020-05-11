@@ -13,6 +13,7 @@ impl Default for DRBH {
     fn default() -> DRBH {
         let page = vec![0xb; 4096];
         DRBH {
+            // It doesn't work if trailing \0 isn't there in the filename.
             path: "/mnt/file.txt\0",
             page,
         }

@@ -18,6 +18,7 @@ impl Default for DRBL {
         let page = vec![0xb; 4096];
         let fd = vec![-1; 512];
         DRBL {
+            // It doesn't work if trailing \0 isn't there in the filename.
             path: "/mnt",
             page,
             fds: RefCell::new(fd),
@@ -29,7 +30,7 @@ impl Bench for DRBL {
     fn init(&self, cores: Vec<u64>) {
         unsafe {
             for core in cores {
-                let filename = format!("{}/file{}.txt", self.path, core);
+                let filename = format!("{}/file{}.txt\0", self.path, core);
 
                 let _a = remove(filename.as_ptr() as *const i8);
                 let fd = open(filename.as_ptr() as *const i8, O_CREAT | O_RDWR, S_IRWXU);
@@ -78,6 +79,13 @@ impl Bench for DRBL {
             }
 
             close(fd);
+            let filename = format!("{}/file{}.txt\0", self.path, core);
+            if remove(filename.as_ptr() as *const i8) != 0 {
+                panic!(
+                    "DRBL: Unable to remove file, errno: {}",
+                    nix::errno::errno()
+                );
+            }
         }
 
         iops.clone()
