@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex 
+set -ex
 
 pip3 install -r scripts/requirements.txt
 
@@ -18,20 +18,26 @@ echo 192 | sudo tee  /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
 DURATION_MS=10000
 MAX_CORES=`nproc`
 
-benchmark='maponly-isolated-independent-4k'
+benchmarks="protect-isolated-shared elevate-isolated-shared mapunmap-shared-isolated maponly-isolated-shared"
 numa=''
 huge=''
 memsize='4096'
 
-LOGFILE=results_${benchmark}.log
-CSVFILE=results_${benchmark}.csv
+for benchmark in $benchmarks; do
+    echo $benchmark
 
-echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $CSVFILE
-for cores in `seq 0 8 $MAX_CORES`; do
-    cat /proc/interrupts | grep TLB | tee -a $LOGFILE;
-    (./bin/vmops -p $cores -t $DURATION_MS -m $memsize -b ${benchmark} ${numa} ${huge} | tee -a $CSVFILE) 3>&1 1>&2 2>&3 | tee -a $LOGFILE
+    LOGFILE=results_${benchmark}.log
+    CSVFILE=results_${benchmark}.csv
+
+    echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $CSVFILE
+    for cores in `seq 0 8 $MAX_CORES`; do
+        cat /proc/interrupts | grep TLB | tee -a $LOGFILE;
+        (./bin/vmops -p $cores -t $DURATION_MS -m $memsize -b ${benchmark} ${numa} ${huge} | tee -a $CSVFILE) 3>&1 1>&2 2>&3 | tee -a $LOGFILE
+    done
+    python3 scripts/plot.py $CSVFILE
+
 done
-python3 scripts/plot.py $CSVFILE
+
 
 # Run Barrelfish experiments
 if [ "$CI_MACHINE_TYPE" = "skylake4x" ]; then
@@ -59,7 +65,7 @@ else
 ## docker run -u $(id -u) -i -t \
 ##    --mount type=bind,source=$BF_SOURCE,target=/source \
 ##    --mount type=bind,source=$BF_BUILD,target=/source/build \
-##    $BF_DOCKER 
+##    $BF_DOCKER
 fi
 
 rm -rf gh-pages
