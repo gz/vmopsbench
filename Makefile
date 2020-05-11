@@ -16,7 +16,7 @@ BENCHMARK_FILES=$(wildcard src/benchmarks/*.c)
 # dependencies
 DEPS_SRC=$(wildcard src/*.c) $(wildcard src/platform/*.c) $(wildcard src/benchmarks/*.c)
 DEPS_INC=$(wildcard src/*.h) $(wildcard src/platform/*.h) $(wildcard src/benchmarks/*.h)
-DEPS_ALL=bin $(DEPS_SRC) $(DEPS_INC) Makefile
+DEPS_ALL=$(DEPS_SRC) $(DEPS_INC) Makefile
 
 
 ifeq ($(PLATFORM),linux)
@@ -33,13 +33,12 @@ LIBS=$(COMMON_LIBS) $(PLAT_LIBS)
 # build targets
 all: bin/vmops bin/vmopstrace
 
-bin:
+bin/vmops : $(DEPS_ALL)
 	mkdir -p bin
-
-bin/vmops : $(DEPS_ALL) bin
 	$(CC) $(CFLAGS) -o $@ src/main.c $(BENCHMARK_FILES) src/platform/$(PLATFORM).c $(LIBS)
 
-bin/vmopstrace : $(DEPS_ALL) bin
+bin/vmopstrace : $(DEPS_ALL)
+	mkdir -p bin
 	$(CC) $(CFLAGS) -g -fno-omit-frame-pointer -o $@ src/main.c $(BENCHMARK_FILES) src/platform/$(PLATFORM).c $(LIBS)
 
 
