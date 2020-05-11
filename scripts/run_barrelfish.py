@@ -139,7 +139,7 @@ def build_barrelfish(args):
     with local.cwd(BARRELFISH_DIR):
         mkdir['-p', 'build']()
         with local.cwd(BARRELIFH_BUILD):
-            hake_cmd = ['../hake/hake.sh', '-s', '../', '-a', 'x86_64']
+            hake_cmd = ['../hake/hake.sh', '-s', '../', '-a', 'x86_64', '-f', '-g -O2 -DNDEBUG']
             if args.verbose:
                 print("cd {}".format(BARRELIFH_BUILD))
             if args.hake:
