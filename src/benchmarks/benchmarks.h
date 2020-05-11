@@ -18,6 +18,10 @@
 ///< the default rate of sampling
 #define DEFAULT_SAMPLING_RATE_MS 10
 
+
+///< the number of basic mappings that are being crated
+#define BENCHMARK_PREPOPULATE_MAPPINGS 1024
+
 struct vmops_bench_cfg
 {
     const char *benchmark;

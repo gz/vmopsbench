@@ -229,6 +229,16 @@ int vmops_utils_prepare_args(struct vmops_bench_cfg *cfg, struct vmops_bench_run
         }
     }
 
+    /* */
+    for (size_t i = 0; i < BENCHMARK_PREPOPULATE_MAPPINGS; i++) {
+        void *addr;
+        err = plat_vm_map(&addr, PLAT_ARCH_BASE_PAGE_SIZE, args[0].memobj, 0, 0);
+        if (err != PLAT_ERR_OK) {
+            LOG_ERR("could not prepopulate with %d mappings\n", BENCHMARK_PREPOPULATE_MAPPINGS);
+            goto err_out;
+        }
+    }
+
     for (uint32_t i = 0; i < cfg->corelist_size; i++) {
         args[i].tid = i;
         args[i].cfg = cfg;
