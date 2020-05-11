@@ -33,14 +33,34 @@ for cores in `seq 0 8 $MAX_CORES`; do
 done
 python3 scripts/plot.py $CSVFILE
 
-python3 scripts/run_barrelfish.py --cores 1 --verbose --hake
-python3 scripts/run_barrelfish.py --cores 1 2
-python3 scripts/run_barrelfish.py --cores 1 2 3
-python3 scripts/run_barrelfish.py --cores 1 2 3 4
-python3 scripts/run_barrelfish.py --cores 1 2 3 4 5
-python3 scripts/run_barrelfish.py --cores 1 2 3 4 5 6
-python3 scripts/run_barrelfish.py --cores 1 2 3 4 5 6 7
-python3 scripts/run_barrelfish.py --cores 1 2 3 4 5 6 7 8
+# Run Barrelfish experiments
+if [ "$CI_MACHINE_TYPE" = "skylake4x" ]; then
+    python3 scripts/run_barrelfish.py --cores 1 --verbose --hake
+    python3 scripts/run_barrelfish.py --cores 1 2
+    python3 scripts/run_barrelfish.py --cores 1 2 3
+    python3 scripts/run_barrelfish.py --cores 1 2 3 4
+    python3 scripts/run_barrelfish.py --cores 1 2 3 4 5
+    python3 scripts/run_barrelfish.py --cores 1 2 3 4 5 6
+    python3 scripts/run_barrelfish.py --cores 1 2 3 4 5 6 7
+    python3 scripts/run_barrelfish.py --cores 1 2 3 4 5 6 7 8
+else
+    echo "skip bf on skylake2x for now"
+## Ideally we build this stuff in docker (since we require ubuntu 19.10 but skylake2x are on 18.04):
+## BF_SOURCE=$(readlink -f `pwd`)
+## BF_BUILD=$BF_SOURCE/build
+## BF_DOCKER=achreto/barrelfish-ci
+## echo "bfdocker: $BF_DOCKER"
+## echo "bfsrc: $BF_SOURCE  build: $BF_BUILD"
+## # pull the docker image
+## docker pull $BF_DOCKER
+## # create the build directory
+## mkdir -p $BF_BUILD
+## # run the command in the docker image
+## docker run -u $(id -u) -i -t \
+##    --mount type=bind,source=$BF_SOURCE,target=/source \
+##    --mount type=bind,source=$BF_BUILD,target=/source/build \
+##    $BF_DOCKER 
+fi
 
 rm -rf gh-pages
 git clone -b gh-pages git@vmops-gh-pages:gz/vmops-bench.git gh-pages
