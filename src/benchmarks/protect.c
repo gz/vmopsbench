@@ -22,8 +22,15 @@ static void *bench_run_fn(struct vmops_bench_run_arg *args)
 
     struct vmops_bench_cfg *cfg = args->cfg;
 
-    size_t counter = 0;
     plat_time_t t_delta = plat_convert_time(args->cfg->time_ms);
+    if (t_delta == 0) {
+        t_delta = PLAT_TIME_MAX;
+    }
+
+    size_t nops = cfg->nops;
+    if (nops == 0) {
+        nops = SIZE_MAX;
+    }
 
     void *addr;
     if (cfg->isolated) {
@@ -43,10 +50,11 @@ static void *bench_run_fn(struct vmops_bench_run_arg *args)
 
 
     plat_time_t t_current = plat_get_time();
-    plat_time_t t_end = t_current + t_delta;
+    plat_time_t t_end = t_delta == PLAT_TIME_MAX ? PLAT_TIME_MAX : t_current + t_delta;
     plat_time_t t_start = t_current;
 
-    while (t_current < t_end) {
+    size_t counter = 0;
+    while (t_current < t_end && counter < nops) {
         err = plat_vm_protect(addr, cfg->memsize, PLAT_PERM_READ_ONLY);
         if (err != PLAT_ERR_OK) {
             LOG_ERR("thread %d. failed to protect memory!\n", args->tid);
@@ -80,11 +88,17 @@ err_out:
 static void *bench_run_4k_fn(struct vmops_bench_run_arg *args)
 {
     plat_error_t err;
-
     struct vmops_bench_cfg *cfg = args->cfg;
 
-    size_t counter = 0;
     plat_time_t t_delta = plat_convert_time(args->cfg->time_ms);
+    if (t_delta == 0) {
+        t_delta = PLAT_TIME_MAX;
+    }
+
+    size_t nops = cfg->nops;
+    if (nops == 0) {
+        nops = SIZE_MAX;
+    }
 
     size_t nmaps = cfg->memsize / PLAT_ARCH_BASE_PAGE_SIZE;
     void **addrs = calloc(nmaps, sizeof(void *));
@@ -121,11 +135,13 @@ static void *bench_run_4k_fn(struct vmops_bench_run_arg *args)
     plat_thread_barrier(args->barrier);
 
     plat_time_t t_current = plat_get_time();
-    plat_time_t t_end = t_current + t_delta;
+    plat_time_t t_end = t_delta == PLAT_TIME_MAX ? PLAT_TIME_MAX : t_current + t_delta;
     plat_time_t t_start = t_current;
 
     size_t page = args->tid;
-    while (t_current < t_end) {
+    size_t counter = 0;
+
+    while (t_current < t_end && counter < nops) {
         size_t idx = (page++) % nmaps;
         err = plat_vm_protect(addrs[idx], PLAT_ARCH_BASE_PAGE_SIZE, PLAT_PERM_READ_ONLY);
         if (err != PLAT_ERR_OK) {

@@ -15,7 +15,8 @@
 
 #define VMOBJ_NAME "/vmops_bench_mapunmap_independent_%d"
 
-struct bench_run_arg {
+struct bench_run_arg
+{
     struct vmops_bench_cfg *cfg;
     plat_memobj_t memobj;
     plat_thread_t thread;
@@ -31,8 +32,15 @@ static void *bench_run_fn(struct vmops_bench_run_arg *args)
 
     struct vmops_bench_cfg *cfg = args->cfg;
 
-    size_t counter = 0;
     plat_time_t t_delta = plat_convert_time(args->cfg->time_ms);
+    if (t_delta == 0) {
+        t_delta = PLAT_TIME_MAX;
+    }
+
+    size_t nops = cfg->nops;
+    if (nops == 0) {
+        nops = SIZE_MAX;
+    }
 
     LOG_INFO("thread %d ready.\n", args->tid);
     plat_thread_barrier(args->barrier);
@@ -40,12 +48,13 @@ static void *bench_run_fn(struct vmops_bench_run_arg *args)
 
     size_t memsize = args->cfg->memsize;
     plat_time_t t_current = plat_get_time();
-    plat_time_t t_end = t_current + t_delta;
+    plat_time_t t_end = t_delta == PLAT_TIME_MAX ? PLAT_TIME_MAX : t_current + t_delta;
     plat_time_t t_start = t_current;
+    size_t counter = 0;
 
     if (cfg->isolated) {
         void *addr = utils_vmops_get_map_address(args->tid);
-        while (t_current < t_end) {
+        while (t_current < t_end && counter < nops) {
             err = plat_vm_map_fixed(addr, memsize, args->memobj, 0, cfg->maphuge);
             if (err != PLAT_ERR_OK) {
                 LOG_ERR("thread %d. failed to map memory ops=%zu!\n", args->tid, counter);
@@ -62,7 +71,7 @@ static void *bench_run_fn(struct vmops_bench_run_arg *args)
             counter++;
         }
     } else {
-        while (t_current < t_end) {
+        while (t_current < t_end && counter < nops) {
             void *addr;
             err = plat_vm_map(&addr, memsize, args->memobj, 0, cfg->maphuge);
             if (err != PLAT_ERR_OK) {
@@ -99,8 +108,15 @@ static void *bench_run_4k_fn(struct vmops_bench_run_arg *args)
 
     struct vmops_bench_cfg *cfg = args->cfg;
 
-    size_t counter = 0;
     plat_time_t t_delta = plat_convert_time(args->cfg->time_ms);
+    if (t_delta == 0) {
+        t_delta = PLAT_TIME_MAX;
+    }
+
+    size_t nops = cfg->nops;
+    if (nops == 0) {
+        nops = SIZE_MAX;
+    }
 
     size_t nmaps = cfg->memsize / PLAT_ARCH_BASE_PAGE_SIZE;
     void **addrs = calloc(nmaps, sizeof(void *));
@@ -138,12 +154,13 @@ static void *bench_run_4k_fn(struct vmops_bench_run_arg *args)
 
 
     plat_time_t t_current = plat_get_time();
-    plat_time_t t_end = t_current + t_delta;
+    plat_time_t t_end = t_delta == PLAT_TIME_MAX ? PLAT_TIME_MAX : t_current + t_delta;
     plat_time_t t_start = t_current;
+    size_t counter = 0;
 
     if (cfg->isolated) {
         size_t page = args->tid;
-        while (t_current < t_end) {
+        while (t_current < t_end && counter < nops) {
             size_t idx = (page++) % nmaps;
             err = plat_vm_unmap(addrs[idx], PLAT_ARCH_BASE_PAGE_SIZE);
             if (err != PLAT_ERR_OK) {
@@ -161,7 +178,7 @@ static void *bench_run_4k_fn(struct vmops_bench_run_arg *args)
         }
     } else {
         size_t page = args->tid;
-        while (t_current < t_end) {
+        while (t_current < t_end && counter < nops) {
             size_t idx = (page++) % nmaps;
             err = plat_vm_unmap(addrs[idx], PLAT_ARCH_BASE_PAGE_SIZE);
             if (err != PLAT_ERR_OK) {
@@ -212,8 +229,15 @@ static void *bench_run_nounmap_fn(struct vmops_bench_run_arg *args)
 
     struct vmops_bench_cfg *cfg = args->cfg;
 
-    size_t counter = 0;
     plat_time_t t_delta = plat_convert_time(args->cfg->time_ms);
+    if (t_delta == 0) {
+        t_delta = PLAT_TIME_MAX;
+    }
+
+    size_t nops = cfg->nops;
+    if (nops == 0) {
+        nops = SIZE_MAX;
+    }
 
     LOG_INFO("thread %d ready.\n", args->tid);
     plat_thread_barrier(args->barrier);
@@ -221,13 +245,14 @@ static void *bench_run_nounmap_fn(struct vmops_bench_run_arg *args)
 
     size_t memsize = args->cfg->memsize;
     plat_time_t t_current = plat_get_time();
-    plat_time_t t_end = t_current + t_delta;
+    plat_time_t t_end = t_delta == PLAT_TIME_MAX ? PLAT_TIME_MAX : t_current + t_delta;
     plat_time_t t_start = t_current;
     plat_time_t t_op_start;
+    size_t counter = 0;
 
     if (cfg->isolated) {
         void *addr = utils_vmops_get_map_address(args->tid);
-        while (t_current < t_end) {
+        while (t_current < t_end && counter < nops) {
             t_op_start = plat_get_time();
             err = plat_vm_map_fixed(addr, memsize, args->memobj, 0, cfg->maphuge);
             if (err != PLAT_ERR_OK) {
@@ -241,7 +266,7 @@ static void *bench_run_nounmap_fn(struct vmops_bench_run_arg *args)
                                   t_current - t_op_start);
         }
     } else {
-        while (t_current < t_end) {
+        while (t_current < t_end && counter < nops) {
             t_op_start = plat_get_time();
 
             void *addr;
@@ -275,8 +300,15 @@ static void *bench_run_nounmap_4k_fn(struct vmops_bench_run_arg *args)
 
     struct vmops_bench_cfg *cfg = args->cfg;
 
-    size_t counter = 0;
     plat_time_t t_delta = plat_convert_time(args->cfg->time_ms);
+    if (t_delta == 0) {
+        t_delta = PLAT_TIME_MAX;
+    }
+
+    size_t nops = cfg->nops;
+    if (nops == 0) {
+        nops = SIZE_MAX;
+    }
 
     size_t nmaps = cfg->memsize / PLAT_ARCH_BASE_PAGE_SIZE;
 
@@ -285,13 +317,14 @@ static void *bench_run_nounmap_4k_fn(struct vmops_bench_run_arg *args)
 
 
     plat_time_t t_current = plat_get_time();
-    plat_time_t t_end = t_current + t_delta;
+    plat_time_t t_end = t_delta == PLAT_TIME_MAX ? PLAT_TIME_MAX : t_current + t_delta;
     plat_time_t t_start = t_current;
+    size_t counter = 0;
 
     if (cfg->isolated) {
         size_t page = args->tid;
         void *addr = utils_vmops_get_map_address(args->tid);
-        while (t_current < t_end) {
+        while (t_current < t_end && counter < nops) {
             size_t idx = (page++) % nmaps;
 
             err = plat_vm_map_fixed(addr, PLAT_ARCH_BASE_PAGE_SIZE, args->memobj,
@@ -306,7 +339,7 @@ static void *bench_run_nounmap_4k_fn(struct vmops_bench_run_arg *args)
         }
     } else {
         size_t page = args->tid;
-        while (t_current < t_end) {
+        while (t_current < t_end && counter < nops) {
             size_t idx = (page++) % nmaps;
             void *addr;
             err = plat_vm_map(&addr, PLAT_ARCH_BASE_PAGE_SIZE, args->memobj,
