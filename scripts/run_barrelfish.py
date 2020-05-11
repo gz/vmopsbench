@@ -165,7 +165,7 @@ def run_barrelfish(args):
     log("Running Barrelfish {}".format(args.cores))
     for i in args.cores:
         with open(MENU_LST_PATH, 'w') as menu_lst_file:
-            my_menu = MENU_LST.format(i, 10000, 'maponly')
+            my_menu = MENU_LST.format(i, 10000, 'maponly-isolated')
             if args.verbose:
                 print("Using the following generated menu.lst")
                 print(my_menu)
