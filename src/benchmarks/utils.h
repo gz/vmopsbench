@@ -110,10 +110,11 @@ int vmops_utils_run_benchmark(uint32_t nthreads, struct vmops_bench_run_arg *arg
  */
 
 #define ADDRESS_OFFSET (512UL << 30)
+#define ADDRESS_REGION_OFFSET (256UL << 30)
 
 static inline void *utils_vmops_get_map_address(uint32_t tid)
 {
-    return (void *)(ADDRESS_OFFSET * (tid + 1));
+    return (void *)(ADDRESS_OFFSET * (tid + 2) + ADDRESS_REGION_OFFSET);
 }
 
 

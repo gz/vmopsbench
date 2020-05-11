@@ -23,7 +23,7 @@ static struct vmops_bench_cfg cfg = { .memsize = 4096,
                                       .stats = 0,
                                       .nounmap = false,
                                       .nops = 0,
-                                      .rate = 0,
+                                      .rate = -1,
                                       .map4k = false,
                                       .maphuge = false,
                                       .isolated = false,
@@ -198,7 +198,7 @@ int main(int argc, char *argv[])
         cfg.memsize = PLAT_ARCH_HUGE_PAGE_SIZE;
     }
 
-    if (cfg.rate == 0) {
+    if (cfg.rate == -1) {
         cfg.rate = DEFAULT_SAMPLING_RATE_MS;
     }
 

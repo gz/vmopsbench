@@ -119,6 +119,9 @@ static void *bench_run_4k_fn(struct vmops_bench_run_arg *args)
 
     struct vmops_bench_cfg *cfg = args->cfg;
 
+    size_t counter = 0;
+
+
     plat_time_t t_delta = plat_convert_time(args->cfg->time_ms);
     if (t_delta == 0) {
         t_delta = PLAT_TIME_MAX;
@@ -167,7 +170,6 @@ static void *bench_run_4k_fn(struct vmops_bench_run_arg *args)
     plat_time_t t_current = plat_get_time();
     plat_time_t t_end = t_delta == PLAT_TIME_MAX ? PLAT_TIME_MAX : t_current + t_delta;
     plat_time_t t_start = t_current;
-    size_t counter = 0;
 
     if (cfg->isolated) {
         size_t page = args->tid;

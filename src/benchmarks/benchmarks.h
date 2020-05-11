@@ -31,7 +31,7 @@ struct vmops_bench_cfg
     size_t nops;
     uint32_t time_ms;
     uint32_t stats;
-    uint32_t rate;
+    int32_t rate;
     bool nounmap;
     bool shared;
     bool isolated;

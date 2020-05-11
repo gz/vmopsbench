@@ -83,7 +83,7 @@ static void *bench_run_fn(struct vmops_bench_run_arg *args)
         }
         t_current = plat_get_time();
         counter++;
-        void *addr = ((char *)addr + PLAT_ARCH_BASE_PAGE_SIZE);
+        addr = ((char *)addr + PLAT_ARCH_BASE_PAGE_SIZE);
 
         vmops_utils_add_stats(&args->stats, args->tid, counter, t_current - t_start,
                         t_current - t_op_start);
