@@ -55,6 +55,7 @@ static void *bench_run_fn(struct vmops_bench_run_arg *args)
     if (cfg->isolated) {
         void *addr = utils_vmops_get_map_address(args->tid);
         while (t_current < t_end && counter < nops) {
+            plat_time_t t_op_start = t_current;
             err = plat_vm_map_fixed(addr, memsize, args->memobj, 0, cfg->maphuge);
             if (err != PLAT_ERR_OK) {
                 LOG_ERR("thread %d. failed to map memory ops=%zu!\n", args->tid, counter);
@@ -68,10 +69,16 @@ static void *bench_run_fn(struct vmops_bench_run_arg *args)
             }
 
             t_current = plat_get_time();
+
+            vmops_utils_add_stats(&args->stats, args->tid, counter, t_current - t_start,
+                                  t_current - t_op_start);
+
             counter++;
         }
     } else {
         while (t_current < t_end && counter < nops) {
+            plat_time_t t_op_start = t_current;
+
             void *addr;
             err = plat_vm_map(&addr, memsize, args->memobj, 0, cfg->maphuge);
             if (err != PLAT_ERR_OK) {
@@ -86,6 +93,10 @@ static void *bench_run_fn(struct vmops_bench_run_arg *args)
             }
 
             t_current = plat_get_time();
+
+            vmops_utils_add_stats(&args->stats, args->tid, counter, t_current - t_start,
+                                  t_current - t_op_start);
+
             counter++;
         }
     }
@@ -253,7 +264,7 @@ static void *bench_run_nounmap_fn(struct vmops_bench_run_arg *args)
     if (cfg->isolated) {
         void *addr = utils_vmops_get_map_address(args->tid);
         while (t_current < t_end && counter < nops) {
-            t_op_start = plat_get_time();
+            t_op_start = t_current;
             err = plat_vm_map_fixed(addr, memsize, args->memobj, 0, cfg->maphuge);
             if (err != PLAT_ERR_OK) {
                 LOG_ERR("thread %d. failed to map memory!\n", args->tid);
@@ -267,8 +278,7 @@ static void *bench_run_nounmap_fn(struct vmops_bench_run_arg *args)
         }
     } else {
         while (t_current < t_end && counter < nops) {
-            t_op_start = plat_get_time();
-
+            t_op_start = t_current;
             void *addr;
             err = plat_vm_map(&addr, memsize, args->memobj, 0, cfg->maphuge);
             if (err != PLAT_ERR_OK) {

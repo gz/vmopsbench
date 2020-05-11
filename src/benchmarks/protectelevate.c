@@ -75,6 +75,7 @@ static void *bench_run_fn(struct vmops_bench_run_arg *args)
     size_t counter = 0;
 
     while (t_current < t_end && counter < nops) {
+        plat_time_t t_op_start = t_current;
         err = plat_vm_protect(addr, PLAT_ARCH_BASE_PAGE_SIZE, PLAT_PERM_READ_WRITE);
         if (err != PLAT_ERR_OK) {
             LOG_ERR("thread %d. failed to unprotect memory!\n", args->tid);
@@ -83,6 +84,9 @@ static void *bench_run_fn(struct vmops_bench_run_arg *args)
         t_current = plat_get_time();
         counter++;
         void *addr = ((char *)addr + PLAT_ARCH_BASE_PAGE_SIZE);
+
+        vmops_utils_add_stats(&args->stats, args->tid, counter, t_current - t_start,
+                        t_current - t_op_start);
     }
     t_end = plat_get_time();
 
