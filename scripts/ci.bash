@@ -6,7 +6,7 @@ pip3 install -r scripts/requirements.txt
 rm *.log *.csv *.png *.pdf /dev/shm/vmops_bench_* || true
 sudo umount -f /mnt || true
 # Mount tmpfs
-sudo mount tmpfs /mnt -t tmpfs -o size=50G
+sudo mount tmpfs /mnt -t tmpfs
 
 benchmark='drbl drbh dwol dwom mwrl mwrm dwal'
 CSVFILE=fsops_benchmark.csv
