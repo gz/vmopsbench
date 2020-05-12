@@ -19,7 +19,8 @@ SAMPLES=1000
 DURATION_MS=10000
 MAX_CORES=`nproc`
 
-benchmarks="protect-isolated-shared mapunmap-shared-isolated maponly-isolated-shared elevate-isolated-shared"
+#benchmarks="protect-isolated-shared mapunmap-shared-isolated maponly-isolated-shared elevate-isolated-shared"
+benchmarks="maponly-isolated-shared"
 numa=''
 huge=''
 memsize='4096'
@@ -33,7 +34,7 @@ for benchmark in $benchmarks; do
     if [[ "$benchmark" -eq "elevate-isolated-shared" ]]; then
     	memsz='40960000'
     else
-	    memsz=$memsize
+	    memsz='4096'
     fi
 
     echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $CSVFILE
@@ -56,7 +57,7 @@ for benchmark in $benchmarks; do
     if [[ "$benchmark" -eq "elevate-isolated-shared" ]]; then
     	memsz='40960000'
     else
-	    memsz=$memsize
+	    memsz='4096'
     fi    
 
     echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $THPT_CSVFILE
