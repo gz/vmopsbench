@@ -19,7 +19,7 @@ SAMPLES=1000
 DURATION_MS=10000
 MAX_CORES=`nproc`
 
-benchmarks="protect-isolated-shared elevate-isolated-shared mapunmap-shared-isolated maponly-isolated-shared"
+benchmarks="protect-isolated-shared mapunmap-shared-isolated maponly-isolated-shared elevate-isolated-shared"
 numa=''
 huge=''
 memsize='4096'
@@ -29,6 +29,12 @@ for benchmark in $benchmarks; do
 
     LOGFILE=results_${benchmark}.log
     CSVFILE=results_${benchmark}.csv
+    
+    if [[ "$benchmark" -eq "elevate-isolated-shared" ]]; then
+    	memsz='40960000'
+    else
+	    memsz=$memsize
+    fi
 
     echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $CSVFILE
     for cores in `seq 0 8 $MAX_CORES`; do
@@ -46,6 +52,12 @@ for benchmark in $benchmarks; do
     LOGFILE=results_${benchmark}_latency.log
     THPT_CSVFILE=results_${benchmark}_throughput.csv
     LATENCY_CSVFILE=results_${benchmark}_latency.csv
+    
+    if [[ "$benchmark" -eq "elevate-isolated-shared" ]]; then
+    	memsz='40960000'
+    else
+	    memsz=$memsize
+    fi    
 
     echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $THPT_CSVFILE
     echo "benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,threadid,elapsed,couter,latency" | tee $LATENCY_CSVFILE
