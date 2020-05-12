@@ -144,8 +144,8 @@ void vmops_utils_print_csv(struct vmops_bench_run_arg *args)
         total_time += args[i].duration;
     }
     LOG_CSV_FOOTER();
-    LOG_RESULT(cfg->benchmark, cfg->memsize, total_time, cfg->corelist_size, total_ops,
-               (float)(total_ops * 1000) / total_time);
+
+    double latency = 0;
 
     struct statval *pairs = args[0].stats.values;
     if (cfg->stats && pairs) {
@@ -153,9 +153,14 @@ void vmops_utils_print_csv(struct vmops_bench_run_arg *args)
 
         LOG_STATS_HEADER();
         for (size_t i = 0; i < cfg->stats * cfg->corelist_size; i++) {
-            LOG_STATS(i, pairs[i]);
+            LOG_STATS(cfg, i, pairs[i]);
+            latency += plat_time_to_ms(pairs[i].val);
         }
+        LOG_STATS_FOOTER();
     }
+
+    LOG_RESULT(cfg->benchmark, cfg->memsize, total_time, cfg->corelist_size, total_ops,
+               (double)(total_ops * 1000) / total_time, latency / total_ops);
 }
 
 

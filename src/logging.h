@@ -65,16 +65,29 @@
 #define LOG_PRINT_END(...) fprintf(stderr, __VA_ARGS__)
 
 
-#define RESULT_FMT_STRING "benchmark=%s, memsize=%zu, time=%.2f, ncores=%d, ops=%zu, thpt=%.2f"
+#define RESULT_FMT_STRING                                                                         \
+    "benchmark=%s, memsize=%zu, time=%.2f, ncores=%d, ops=%zu, thpt=%.2f, lat=%.4f"
 
-#define LOG_RESULT(_b, _m, _t, _n, _o, _thpt)                                                      \
+#define LOG_RESULT(_b, _m, _t, _n, _o, _thpt, _lat)                                                \
     fprintf(stderr,                                                                                \
             VMOPS_PRINT_PREFIX COLOR_RESULT "RESULT [[ " RESULT_FMT_STRING " ]]" COLOR_RESET "\n", \
-            _b, _m, _t, _n, _o, _thpt)
+            _b, _m, _t, _n, _o, _thpt, _lat)
+
+
+/*
+ * ================================================================================================
+ * Printing of Benchmark Throughput Results in CSV
+ * ================================================================================================
+ */
+
+
+///< file set to where the throughput csv is printed, defined in main.c
+extern FILE *thptout;
 
 #define LOG_CSV_HEADER()                                                                          \
-    fprintf(stderr, "===================== BEGIN CSV =====================\n");                   \
-    /* fprintf(stdout, "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_"                     \
+    fprintf(stderr, "===================== BEGIN CSV =====================\n");
+
+/* fprintf(thptout, "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_" \
                     "size,memobj,isolation,duration,operations\n"); */
 
 #define LOG_CSV_FOOTER()                                                                          \
@@ -82,7 +95,7 @@
 
 // If you modify the CSV format, also change the header-line in scripts/run.sh accordingly:
 #define LOG_CSV(_cfg, _t, _d, _tpt)                                                               \
-    fprintf(stdout, "%d,%s,%d,%d,%zu,%s,%s,%s,%s,%s,%.3f,%zu\n", _t, (_cfg)->benchmark,           \
+    fprintf(thptout, "%d,%s,%d,%d,%zu,%s,%s,%s,%s,%s,%.3f,%zu\n", _t, (_cfg)->benchmark,          \
             (_cfg)->coreslist[_t], (_cfg)->corelist_size, (_cfg)->memsize,                        \
             ((_cfg)->numainterleave ? "numainterleave" : "numafill"),                             \
             ((_cfg)->map4k ? "smallmappings" : "onelargemap"),                                    \
@@ -91,13 +104,39 @@
             ((_cfg)->isolated ? "isolated" : "default"), _d, _tpt);
 
 
+/*
+ * ================================================================================================
+ * Printing of Benchmark Latency Results in CSV
+ * ================================================================================================
+ */
+
+
+///< file set to where the latency csv is printed, defined in main.c
+extern FILE *latout;
+
 // prints time elapsed, thread id, number of operations so far on this thread, time of the operation
-#define LOG_STATS_HEADER() fprintf(stderr, "tid,   t_elapsed,  counter, latency\n");
-#define LOG_STATS(n, stat)                                                                        \
+#define LOG_STATS_HEADER()                                                                        \
+    fprintf(stderr, "====================== END CSV ======================\n");
+
+/* fprintf(thptout, "benchmark,core,ncores,memsize,numainterleave,mappings_size,page_" \
+                    "size,memobj,isolation,threadid,elapsed,couter,latency\n"); */
+
+#define LOG_STATS_FOOTER()                                                                        \
+    fprintf(stderr, "====================== END CSV ======================\n");
+
+
+#define LOG_STATS(_cfg, n, stat)                                                                  \
     do {                                                                                          \
         if ((stat).t_elapsed != 0 && (stat).val != 0) {                                           \
-            fprintf(stderr, "%3d,%12f, %8" PRIu64 ", %7" PRIu64 "\n", (stat).tid,                 \
-                    plat_time_to_ms((stat).t_elapsed), (stat).counter, (stat).val);               \
+            fprintf(latout, "%s,%d,%d,%zu,%s,%s,%s,%s,%s,%d,%f,%" PRIu64 ",%f\n",                 \
+                    (_cfg)->benchmark, (_cfg)->coreslist[(stat).tid], (_cfg)->corelist_size,      \
+                    (_cfg)->memsize, ((_cfg)->numainterleave ? "numainterleave" : "numafill"),    \
+                    ((_cfg)->map4k ? "smallmappings" : "onelargemap"),                            \
+                    ((_cfg)->maphuge ? "hugepages" : "basepages"),                                \
+                    ((_cfg)->shared ? "shared-memobj" : "independent-memobj"),                    \
+                    ((_cfg)->isolated ? "isolated" : "default"), (stat).tid,                      \
+                    plat_time_to_ms((stat).t_elapsed), (stat).counter,                            \
+                    plat_time_to_ms((stat).val));                                                 \
         }                                                                                         \
     } while (0)
 
