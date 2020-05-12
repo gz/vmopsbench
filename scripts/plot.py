@@ -96,4 +96,9 @@ if __name__ == '__main__':
 
     df = parse_results(sys.argv[1])
     filename, file_extension = os.path.splitext(sys.argv[1])
-    plot_scalability(filename, df)
+
+    if filename.find("latency") != -1 :
+        print("Using latency plotting. !!!! NYI")
+    else :
+        print("Using throughput plotting.")
+        plot_scalability(filename, df)
