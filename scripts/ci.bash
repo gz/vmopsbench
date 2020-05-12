@@ -44,14 +44,17 @@ for benchmark in $benchmarks; do
     echo $benchmark
 
     LOGFILE=results_${benchmark}_latency.log
-    CSVFILE=results_${benchmark}_latency.csv
+    THPT_CSVFILE=results_${benchmark}_throughput.csv
+    LATENCY_CSVFILE=results_${benchmark}_latency.csv
 
-    echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $CSVFILE
+    echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $THPT_CSVFILE
+    echo "benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,threadid,elapsed,couter,latency" | tee $LATENCY_CSVFILE
     for cores in `seq 0 8 $MAX_CORES`; do
         cat /proc/interrupts | grep TLB | tee -a $LOGFILE;
-        (./bin/vmops -p $cores -n $SAMPLES -s $SAMPLES -r 0 -m $memsize -b ${benchmark} ${numa} ${huge} | tee -a $CSVFILE) 3>&1 1>&2 2>&3 | tee -a $LOGFILE
+        (./bin/vmops -z $LATENCY_CSVFILE -p $cores -n $SAMPLES -s $SAMPLES -r 0 -m $memsize -b ${benchmark} ${numa} ${huge} | tee -a $THPT_CSVFILE) 3>&1 1>&2 2>&3 | tee -a $LOGFILE
     done
-    python3 scripts/plot.py $CSVFILE
+    python3 scripts/plot.py $THPT_CSVFILE
+    python3 scripts/plot.py $LATENCY_CSVFILE
 done
 
 
@@ -62,7 +65,7 @@ for benchmark in $benchmarks; do
     python3 scripts/run_barrelfish.py --benchmark $benchmark --cores 1 --verbose --hake
     for corecount in 2 4 8 16 24 32; do
     	cores=`seq 0 1 $corecount`
-		python3 scripts/run_barrelfish.py --benchmark $benchmark --cores $cores 
+		python3 scripts/run_barrelfish.py --benchmark $benchmark --cores $cores
     done
 done
 
@@ -70,7 +73,7 @@ for benchmark in $benchmarks; do
     python3 scripts/run_barrelfish.py --benchmark $benchmark --cores 1 --verbose --hake
     for corecount in 2 4 8 16 24 32; do
     	cores=`seq 0 1 $corecount`
-		python3 scripts/run_barrelfish.py --nops $SAMPLES --benchmark $benchmark --cores $cores 
+		python3 scripts/run_barrelfish.py --nops $SAMPLES --benchmark $benchmark --cores $cores
     done
 done
 

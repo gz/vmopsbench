@@ -16,6 +16,13 @@
 #include "logging.h"
 #include "benchmarks/benchmarks.h"
 
+
+#define THPOUT_DEFAULT stdout
+FILE *thptout = NULL;
+
+#define LATOUT_DEFAULT stdout
+FILE *latout = NULL;
+
 static struct vmops_bench_cfg cfg = { .memsize = 4096,
                                       .coreslist = NULL,
                                       .corelist_size = 0,
@@ -113,11 +120,14 @@ int main(int argc, char *argv[])
     uint32_t ncores = 0;
     cfg.benchmark = "mapunmap";
 
+    thptout = THPOUT_DEFAULT;
+    latout = LATOUT_DEFAULT;
+
     plat_topo_numa_t numa_topology = PLAT_TOPOLOGY_NUMA_FILL;
     plat_topo_cores_t cores_topology = PLAT_TOPOLOGY_CORES_INTERLEAVE;
 
     int opt;
-    while ((opt = getopt(argc, argv, "lis:p:t:c:m:n:b:r:h")) != -1) {
+    while ((opt = getopt(argc, argv, "lis:p:t:c:m:n:b:r:o:z:h")) != -1) {
         switch (opt) {
         case 'l':
             cfg.maphuge = true;
@@ -152,6 +162,22 @@ int main(int argc, char *argv[])
         case 'r':
             cfg.rate = strtoul(optarg, NULL, 10);
             LOG_INFO("using sampling rate %d ms for stats\n", cfg.rate);
+            break;
+        case 'o':
+            LOG_INFO("using '%s' as outfile for throughput csv\n", optarg);
+            thptout = fopen (optarg,"a");
+            if (thptout == NULL) {
+                LOG_ERR("could not open file for writing, falling back to stdout\n");
+                thptout = THPOUT_DEFAULT;
+            }
+            break;
+        case 'z' :
+            LOG_INFO("using '%s' as outfile for latency csv\n", optarg);
+            latout = fopen (optarg,"a");
+            if (latout == NULL) {
+                LOG_ERR("could not open file for writing, falling back to stdout\n");
+                latout = LATOUT_DEFAULT;
+            }
             break;
         case 'h':
             print_help(argv[0]);
@@ -237,6 +263,17 @@ int main(int argc, char *argv[])
 
     if (r) {
         LOG_ERR("benchmark '%s' failed.\n", cfg.benchmark);
+    }
+
+
+    if (thptout != THPOUT_DEFAULT) {
+        fflush(thptout);
+        fclose(thptout);
+    }
+
+    if (latout != LATOUT_DEFAULT) {
+        fflush(latout);
+        fclose(latout);
     }
 
     free(cfg.coreslist);
