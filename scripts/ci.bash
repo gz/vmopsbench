@@ -8,10 +8,10 @@ sudo umount -f /mnt || true
 # Mount tmpfs
 sudo mount tmpfs /mnt -t tmpfs -o size=50G
 
-benchmark='drbh'
+benchmark='drbh drbh dwol dwom mwrl mwrm'
 CSVFILE=fsops_benchmark.csv
 
-RUST_TEST_THREADS=1 cargo bench --bench fxmark -- --duration 10 --type drbl drbh dwol dwom
+RUST_TEST_THREADS=1 cargo bench --bench fxmark -- --duration 10 --type $benchmark
 python3 scripts/plot.py $CSVFILE
 
 # Unmount tmpfs

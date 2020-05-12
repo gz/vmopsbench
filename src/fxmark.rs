@@ -11,7 +11,7 @@ use utils::topology::ThreadMapping;
 use utils::topology::*;
 
 mod bench;
-use bench::{drbh::DRBH, drbl::DRBL, dwal::DWAL, dwol::DWOL, dwom::DWOM};
+use bench::{drbh::DRBH, drbl::DRBL, dwal::DWAL, dwol::DWOL, dwom::DWOM, mwrl::MWRL, mwrm::MWRM};
 
 pub trait Bench {
     fn init(&self, cores: Vec<u64>);
@@ -207,7 +207,7 @@ fn main() {
                 .multiple(true)
                 .takes_value(true)
                 .required(true)
-                .possible_values(&["drbl", "drbh", "dwol", "dwom", "dwal"])
+                .possible_values(&["drbl", "drbh", "dwol", "dwom", "dwal", "mwrl", "mwrm"])
                 .help("Benchmark to run."),
         )
         .get_matches_from(args);
@@ -259,5 +259,21 @@ fn main() {
             .thread_defaults()
             .thread_mapping(ThreadMapping::Interleave)
             .start(duration, "dwal", file_name);
+    }
+
+    // Rename a private file in a private directory
+    if versions.contains(&"mwrl") {
+        BenchMark::<MWRL>::new()
+            .thread_defaults()
+            .thread_mapping(ThreadMapping::Interleave)
+            .start(duration, "mwrl", file_name);
+    }
+
+    // Move a private file to a shared directory
+    if versions.contains(&"mwrm") {
+        BenchMark::<MWRM>::new()
+            .thread_defaults()
+            .thread_mapping(ThreadMapping::Interleave)
+            .start(duration, "mwrm", file_name);
     }
 }
