@@ -8,7 +8,7 @@ sudo umount -f /mnt || true
 # Mount tmpfs
 sudo mount tmpfs /mnt -t tmpfs -o size=50G
 
-benchmark='drbh drbh dwol dwom mwrl mwrm'
+benchmark='drbl drbh dwol dwom mwrl mwrm dwal'
 CSVFILE=fsops_benchmark.csv
 
 RUST_TEST_THREADS=1 cargo bench --bench fxmark -- --duration 10 --type $benchmark
