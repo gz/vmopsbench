@@ -171,7 +171,6 @@ def build_barrelfish(args):
 # module /x86_64/sbin/vmops_array_mcn -p 3 -b elevate-isolated -m 40960000 -n 10000
 # for the last one: make -m =(4096 * -n)
 
-
 def run_barrelfish(args):
     if args.norun:
         return True
@@ -200,7 +199,7 @@ def run_barrelfish(args):
             CSV_ROW_BEGIN = "===================== BEGIN CSV ====================="
             CSV_ROW_END = "====================== END CSV ======================"
             qemu_instance = pexpect.spawn(
-                ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': str(i), 'MEMORY': '128G'}, timeout=28+i*5)
+                ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': str(i+1), 'MEMORY': '128G'}, timeout=28+i*5)
             qemu_instance.expect(CSV_ROW_BEGIN)
             qemu_instance.expect(CSV_ROW_END)
             results = qemu_instance.before.decode('utf-8')
