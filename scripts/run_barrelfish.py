@@ -183,7 +183,7 @@ def run_barrelfish(args):
             elif args.time != -1:
                 bench_arg = "-t {}".format(args.time)
             else:
-                bench_arg = "-t 10000"
+                bench_arg = "-t 4000"
 
             my_menu = MENU_LST.format(i, bench_arg, args.benchmark)
             if args.verbose:
