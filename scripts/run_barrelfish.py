@@ -61,8 +61,8 @@ parser.add_argument("-c", "--cores", type=int, nargs='+',
                     help="How many cores to run on")
 parser.add_argument("-b", "--benchmark",
                     help="How many cores to run on")
-parser.add_argument("-n", "--nops", type=int, default=-1,
-                    help="how many operations should be done")
+parser.add_argument("-o", "--nops", type=int, default=-1,
+                    help="How many operations should be done")
 parser.add_argument("-t", "--time", type=int, default=-1,
                     help="how long to run the benchmark")
 parser.add_argument("--hake", action="store_true", default=False,
@@ -145,7 +145,8 @@ def build_barrelfish(args):
     with local.cwd(BARRELFISH_DIR):
         mkdir['-p', 'build']()
         with local.cwd(BARRELIFH_BUILD):
-            hake_cmd = ['../hake/hake.sh', '-s', '../', '-a', 'x86_64', '-f', '-g -O2 -DNDEBUG']
+            hake_cmd = ['../hake/hake.sh', '-s', '../',
+                        '-a', 'x86_64', '-f', '-g -O2 -DNDEBUG']
             if args.verbose:
                 print("cd {}".format(BARRELIFH_BUILD))
             if args.hake:
@@ -164,7 +165,6 @@ def build_barrelfish(args):
             make(*make_args)
 
 
-
 # #module /x86_64/sbin/vmops_array_mcn -p 3 -b maponly-isolated -n 2000
 # #module /x86_64/sbin/vmops_array_mcn -p 3 -b mapunmap-isolated -n 6000
 # #module /x86_64/sbin/vmops_array_mcn -p 3 -b protect-isolated -n 2000
@@ -179,13 +179,13 @@ def run_barrelfish(args):
     log("Running Barrelfish {}".format(args.cores))
     for i in args.cores:
         with open(MENU_LST_PATH, 'w') as menu_lst_file:
-        	if args.nops != -1 :
-        		bench_arg = "-n %d -s %d -r 0" % (args.nops, args.nops)
-        	elif args.time != -1 :
-				bench_arg = "-t %d" % args.time
-        	else :
-				bench_arg = "-t 10000"
-				
+            if args.nops != -1:
+                bench_arg = "-o {} -s {} -r 0".format(args.nops, args.nops)
+            elif args.time != -1:
+                bench_arg = "-t {}".format(args.time)
+            else:
+                bench_arg = "-t 10000"
+
             my_menu = MENU_LST.format(i, bench_arg, args.benchmark)
             if args.verbose:
                 print("Using the following generated menu.lst")
@@ -200,7 +200,7 @@ def run_barrelfish(args):
             CSV_ROW_BEGIN = "===================== BEGIN CSV ====================="
             CSV_ROW_END = "====================== END CSV ======================"
             qemu_instance = pexpect.spawn(
-                ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': '16', 'MEMORY': '128G'}, timeout=28+i*5)
+                ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': str(i), 'MEMORY': '128G'}, timeout=28+i*5)
             qemu_instance.expect(CSV_ROW_BEGIN)
             qemu_instance.expect(CSV_ROW_END)
             results = qemu_instance.before.decode('utf-8')
