@@ -31,7 +31,7 @@ for benchmark in $benchmarks; do
     LOGFILE=results_${benchmark}.log
     CSVFILE=results_${benchmark}.csv
     
-    if [[ "$benchmark" -eq "elevate-isolated-shared" ]]; then
+    if [[ "$benchmark" = "elevate-isolated-shared" ]]; then
     	memsz='40960000'
     else
 	    memsz='4096'
@@ -54,7 +54,7 @@ for benchmark in $benchmarks; do
     THPT_CSVFILE=results_${benchmark}_throughput.csv
     LATENCY_CSVFILE=results_${benchmark}_latency.csv
     
-    if [[ "$benchmark" -eq "elevate-isolated-shared" ]]; then
+    if [[ "$benchmark" = "elevate-isolated-shared" ]]; then
     	memsz='40960000'
     else
 	    memsz='4096'
