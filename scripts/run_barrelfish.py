@@ -45,7 +45,7 @@ module /x86_64/sbin/corectrl auto
 # module /x86_64/sbin/ahcid auto
 
 #
-module /x86_64/sbin/vmops_array_mcn -p {} {} -b {}
+module /x86_64/sbin/vmops_array_mcn -p {} {} -b {} -m {}
 """
 
 #
@@ -123,9 +123,9 @@ def install_deps(args):
     log("Install dependencies")
     args = ['apt-get', '-y', 'install'] + deps
     sudo(*args)
-    from plumbum.cmd import cabal
-    cabal['update']()
-    cabal['install', 'bytestring-trie', 'pretty-simple']()
+#    from plumbum.cmd import cabal
+#    cabal['update']()
+#    cabal['install', 'bytestring-trie', 'pretty-simple']()
 
 
 def deploy_vmops(args):
@@ -184,8 +184,11 @@ def run_barrelfish(args):
                 bench_arg = "-t {}".format(args.time)
             else:
                 bench_arg = "-t 4000"
+            mem = "4096"
+            if args.benchmark.startswith("elevate") :
+                mem = "40960000"
 
-            my_menu = MENU_LST.format(i, bench_arg, args.benchmark)
+            my_menu = MENU_LST.format(i, bench_arg, args.benchmark, mem)
             if args.verbose:
                 print("Using the following generated menu.lst")
                 print(my_menu)
@@ -199,7 +202,7 @@ def run_barrelfish(args):
             CSV_ROW_BEGIN = "===================== BEGIN CSV ====================="
             CSV_ROW_END = "====================== END CSV ======================"
             qemu_instance = pexpect.spawn(
-                ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': str(i+1), 'MEMORY': '128G'}, timeout=28+i*5)
+                ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': str(i+1), 'MEMORY': '6G'}, timeout=60+i*12)
             qemu_instance.expect(CSV_ROW_BEGIN)
             qemu_instance.expect(CSV_ROW_END)
             results = qemu_instance.before.decode('utf-8')
