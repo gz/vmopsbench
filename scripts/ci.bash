@@ -72,7 +72,7 @@ done
 
 
 # Run Barrelfish experiments
-if [ "$CI_MACHINE_TYPE" = "not-working-atm" ]; then
+if [ "$CI_MACHINE_TYPE" = "skylake4x" ]; then
 
 for benchmark in $benchmarks; do
     python3 scripts/run_barrelfish.py --benchmark $benchmark --cores 1 --verbose --hake
