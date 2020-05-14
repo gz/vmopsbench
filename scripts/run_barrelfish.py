@@ -202,7 +202,7 @@ def run_barrelfish(args):
             CSV_ROW_BEGIN = "===================== BEGIN CSV ====================="
             CSV_ROW_END = "====================== END CSV ======================"
             qemu_instance = pexpect.spawn(
-                ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': str(i+1), 'MEMORY': '32G'}, timeout=60+i*12)
+                ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': str(18), 'MEMORY': '32G'}, timeout=60+i*12)
             qemu_instance.expect(CSV_ROW_BEGIN)
             qemu_instance.expect(CSV_ROW_END)
             results = qemu_instance.before.decode('utf-8')
