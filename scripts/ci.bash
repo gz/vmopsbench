@@ -20,10 +20,52 @@ DURATION_MS=10000
 MAX_CORES=`nproc`
 
 #benchmarks="protect-isolated-shared mapunmap-shared-isolated maponly-isolated-shared elevate-isolated-shared"
-benchmarks="maponly-isolated-shared elevate-isolated-shared"
+benchmarks="elevate-isolated-shared maponly-isolated-shared"
 numa=''
 huge=''
 memsize='4096'
+
+
+
+# Run Barrelfish experiments
+if [ "$CI_MACHINE_TYPE" = "skylake4x" ]; then
+
+for benchmark in $benchmarks; do
+    python3 scripts/run_barrelfish.py --verbose --benchmark $benchmark --cores 1 --verbose --hake --time 2000
+    for corecount in 2 4 8 16; do
+        cores=`seq 0 1 $corecount`
+        python3 scripts/run_barrelfish.py --verbose --benchmark $benchmark --cores $cores --time 2000
+    done
+done
+
+for benchmark in $benchmarks; do
+    python3 scripts/run_barrelfish.py --verbose --benchmark $benchmark --cores 1 --verbose --hake --time 2000
+    for corecount in 2 4 8 16; do
+        cores=`seq 0 1 $corecount`
+        python3 scripts/run_barrelfish.py --verbose --nops $SAMPLES --benchmark $benchmark --cores $cores --time 2000
+    done
+done
+
+else
+    echo "skip bf on skylake2x for now"
+## Ideally we build this stuff in docker (since we require ubuntu 19.10 but skylake2x are on 18.04):
+## BF_SOURCE=$(readlink -f `pwd`)
+## BF_BUILD=$BF_SOURCE/build
+## BF_DOCKER=achreto/barrelfish-ci
+## echo "bfdocker: $BF_DOCKER"
+## echo "bfsrc: $BF_SOURCE  build: $BF_BUILD"
+## # pull the docker image
+## docker pull $BF_DOCKER
+## # create the build directory
+## mkdir -p $BF_BUILD
+## # run the command in the docker image
+## docker run -u $(id -u) -i -t \
+##    --mount type=bind,source=$BF_SOURCE,target=/source \
+##    --mount type=bind,source=$BF_BUILD,target=/source/build \
+##    $BF_DOCKER
+fi
+
+
 
 for benchmark in $benchmarks; do
     echo $benchmark
@@ -70,44 +112,6 @@ for benchmark in $benchmarks; do
     python3 scripts/plot.py $LATENCY_CSVFILE
 done
 
-
-# Run Barrelfish experiments
-if [ "$CI_MACHINE_TYPE" = "skylake4x" ]; then
-
-for benchmark in $benchmarks; do
-    python3 scripts/run_barrelfish.py --benchmark $benchmark --cores 1 --verbose --hake
-    for corecount in 2 4 8 16; do
-        cores=`seq 0 1 $corecount`
-        python3 scripts/run_barrelfish.py --benchmark $benchmark --cores $cores
-    done
-done
-
-for benchmark in $benchmarks; do
-    python3 scripts/run_barrelfish.py --benchmark $benchmark --cores 1 --verbose --hake
-    for corecount in 2 4 8 16; do
-        cores=`seq 0 1 $corecount`
-        python3 scripts/run_barrelfish.py --nops $SAMPLES --benchmark $benchmark --cores $cores
-    done
-done
-
-else
-    echo "skip bf on skylake2x for now"
-## Ideally we build this stuff in docker (since we require ubuntu 19.10 but skylake2x are on 18.04):
-## BF_SOURCE=$(readlink -f `pwd`)
-## BF_BUILD=$BF_SOURCE/build
-## BF_DOCKER=achreto/barrelfish-ci
-## echo "bfdocker: $BF_DOCKER"
-## echo "bfsrc: $BF_SOURCE  build: $BF_BUILD"
-## # pull the docker image
-## docker pull $BF_DOCKER
-## # create the build directory
-## mkdir -p $BF_BUILD
-## # run the command in the docker image
-## docker run -u $(id -u) -i -t \
-##    --mount type=bind,source=$BF_SOURCE,target=/source \
-##    --mount type=bind,source=$BF_BUILD,target=/source/build \
-##    $BF_DOCKER
-fi
 
 rm -rf gh-pages
 git clone -b gh-pages git@vmops-gh-pages:gz/vmops-bench.git gh-pages
