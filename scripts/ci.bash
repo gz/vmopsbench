@@ -25,24 +25,28 @@ numa=''
 huge=''
 memsize='4096'
 
-
+BF_DURATION=1000
 
 # Run Barrelfish experiments
 if [ "$CI_MACHINE_TYPE" = "skylake4x" ]; then
 
 for benchmark in $benchmarks; do
-    python3 scripts/run_barrelfish.py --verbose --benchmark $benchmark --cores 1 --verbose --hake --time 2000
+	echo $benchmark 
+    python3 scripts/run_barrelfish.py --verbose --benchmark $benchmark --cores 1 --verbose --hake --time $BF_DURATION || true
     for corecount in 2 4 8 16; do
         cores=`seq 0 1 $corecount`
-        python3 scripts/run_barrelfish.py --verbose --benchmark $benchmark --cores $cores --time 2000
+       	echo "$benchmark with $corecount cores"
+        python3 scripts/run_barrelfish.py --verbose --benchmark $benchmark --cores $cores --time $BF_DURATION || true
     done
 done
 
 for benchmark in $benchmarks; do
-    python3 scripts/run_barrelfish.py --verbose --benchmark $benchmark --cores 1 --verbose --hake --time 2000
+	echo $benchmark
+    python3 scripts/run_barrelfish.py --verbose --benchmark $benchmark --cores 1 --verbose --hake --time $BF_DURATION || true
     for corecount in 2 4 8 16; do
         cores=`seq 0 1 $corecount`
-        python3 scripts/run_barrelfish.py --verbose --nops $SAMPLES --benchmark $benchmark --cores $cores --time 2000
+       	echo "$benchmark with $corecount cores"
+        python3 scripts/run_barrelfish.py --verbose --nops $SAMPLES --benchmark $benchmark --cores $cores --time $BF_DURATION || true
     done
 done
 
@@ -51,7 +55,7 @@ else
 ## Ideally we build this stuff in docker (since we require ubuntu 19.10 but skylake2x are on 18.04):
 ## BF_SOURCE=$(readlink -f `pwd`)
 ## BF_BUILD=$BF_SOURCE/build
-## BF_DOCKER=achreto/barrelfish-ci
+## BF_DOCKER=achreto/barrelfish-ci:20.04
 ## echo "bfdocker: $BF_DOCKER"
 ## echo "bfsrc: $BF_SOURCE  build: $BF_BUILD"
 ## # pull the docker image
