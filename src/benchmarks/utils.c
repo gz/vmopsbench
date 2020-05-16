@@ -99,6 +99,8 @@ char *vmops_utils_print_options(struct vmops_bench_cfg *cfg)
  * ================================================================================================
  */
 
+
+#if 0
 static int paircmp(const void *_p1, const void *_p2)
 {
     const struct statval *p1 = _p1;
@@ -112,7 +114,7 @@ static int paircmp(const void *_p1, const void *_p2)
         return 1;
     }
 }
-
+#endif
 
 /**
  * @brief prints the results of the benchmark as CSV
