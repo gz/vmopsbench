@@ -128,11 +128,10 @@ for benchmark in $benchmarks; do
 	    CSVFILE=vmops_linux_${benchmark}_threads_${cores}_results.csv
     
         cat /proc/interrupts | grep TLB | tee -a $LOGFILE;
-        (./bin/vmops -p $cores -t $DURATION_MS -m $memsz -b ${benchmark} ${numa} ${huge} | tee -a $CSVFILE) 3>&1 1>&2 2>&3 | tee -a $LOGFILE
+        (./bin/vmops -p $cores -t $DURATION_MS -m $memsz -b ${benchmark} ${numa} ${huge} | tee $CSVFILE) 3>&1 1>&2 2>&3 | tee -a $LOGFILE
         
         tail -n +2 $CSVFILE >> $CSVFILE_ALL
     done
-   	
     python3 scripts/plot.py $CSVFILE_ALL
 
 done
@@ -147,8 +146,8 @@ for benchmark in $benchmarks; do
         memsz='4096'
     fi    
 	
-	THPT_CSVFILE_ALL=vmops_linux_${benchmark}_threads_all_latency_results.csv
-	LATENCY_CSVFILE_ALL=vmops_linux_${benchmark}_threads_all_throughput_results.csv
+	LATENCY_CSVFILE_ALL=vmops_linux_${benchmark}_threads_all_latency_results.csv
+	THPT_CSVFILE_ALL=vmops_linux_${benchmark}_threads_all_throughput_results.csv
 	
     echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $THPT_CSVFILE_ALL
     echo "benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,threadid,elapsed,couter,latency" | tee $LATENCY_CSVFILE_ALL
@@ -159,7 +158,7 @@ for benchmark in $benchmarks; do
 	    LATENCY_CSVFILE=vmops_linux_${benchmark}_threads_${cores}_latency_results.csv
 	    
         cat /proc/interrupts | grep TLB | tee -a $LOGFILE;
-        (./bin/vmops -z $LATENCY_CSVFILE -p $cores -n $SAMPLES -s $SAMPLES -r 0 -m $memsz -b ${benchmark} ${numa} ${huge} | tee -a $THPT_CSVFILE) 3>&1 1>&2 2>&3 | tee -a $LOGFILE
+        (./bin/vmops -z $LATENCY_CSVFILE -p $cores -n $SAMPLES -s $SAMPLES -r 0 -m $memsz -b ${benchmark} ${numa} ${huge} | tee $THPT_CSVFILE) 3>&1 1>&2 2>&3 | tee -a $LOGFILE
         
         tail -n +2 $THPT_CSVFILE >> $THPT_CSVFILE_ALL
         tail -n +2 $LATENCY_CSVFILE >> $LATENCY_CSVFILE_ALL
