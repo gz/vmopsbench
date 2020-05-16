@@ -227,7 +227,7 @@ def run_barrelfish(args):
             results = qemu_instance.before.decode('utf-8')
 
             with open(RESULTS_PATH / args.csvlat, 'a') as results_file:
-                print(results.strip())
+                #print(results.strip())
                 results_file.write(results.strip() + "\n")
 				
 				
