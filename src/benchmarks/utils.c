@@ -149,7 +149,7 @@ void vmops_utils_print_csv(struct vmops_bench_run_arg *args)
 
     struct statval *pairs = args[0].stats.values;
     if (cfg->stats && pairs) {
-        qsort(pairs, cfg->stats * cfg->corelist_size, sizeof(struct statval), paircmp);
+       // qsort(pairs, cfg->stats * cfg->corelist_size, sizeof(struct statval), paircmp);
 
         LOG_STATS_HEADER();
         for (size_t i = 0; i < cfg->stats * cfg->corelist_size; i++) {
