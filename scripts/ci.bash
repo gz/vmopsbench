@@ -52,7 +52,11 @@ for benchmark in $benchmarks; do
        	
         python3 scripts/run_barrelfish.py --verbose  --csvthpt "$CSVFILE" --csvlat "tmp.csv" --benchmark $benchmark --cores $corecount --time $BF_DURATION || true
         
-        tail -n +2 $CSVFILE >> $CSVFILE_ALL
+		if [ -f $CSVFILE ]; then
+	        tail -n +2 $CSVFILE >> $CSVFILE_ALL
+        else 
+        	echo "WARNING: $CSVFILE does not exists!!"
+        fi
     done
 done
 
@@ -85,12 +89,25 @@ for benchmark in $benchmarks; do
        	echo "$benchmark with $corecount cores"
         python3 scripts/run_barrelfish.py --verbose --csvthpt "$THPT_CSVFILE" --csvlat "$LATENCY_CSVFILE" --nops $BF_SAMPLES --benchmark $benchmark --cores $corecount --time $BF_DURATION || true
         
-        tail -n +2 $THPT_CSVFILE >> $THPT_CSVFILE_ALL
-        tail -n +2 $LATENCY_CSVFILE >> $LATENCY_CSVFILE_ALL
+        
+        if [ -f $THPT_CSVFILE ]; then
+	        tail -n +2 $THPT_CSVFILE >> $THPT_CSVFILE_ALL
+        else 
+        	echo "WARNING: $THPT_CSVFILE does not exists!!"        
+        fi
+
+        if [ -f $LATENCY_CSVFILE ]; then
+	        tail -n +2 $LATENCY_CSVFILE >> $LATENCY_CSVFILE_ALL
+        else 
+        	echo "WARNING: $LATENCY_CSVFILE does not exists!!"
+        fi
+
+        
     done
     
     rm -rf $LATENCY_CSVFILE_ALL
 done
+
 
 else
     echo "skip bf on skylake2x for now"

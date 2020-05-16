@@ -209,8 +209,10 @@ def run_barrelfish(args):
             print(" ".join(cmd_args))
         CSV_ROW_BEGIN = "===================== BEGIN CSV ====================="
         CSV_ROW_END = "====================== END CSV ======================"
+        print("Running with timeout: %d" % (60+args.cores*30))
         qemu_instance = pexpect.spawn(
-            ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': str(18), 'MEMORY': '32G'}, timeout=60+args.cores*12)
+            ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': str(18), 'MEMORY': '32G'}, timeout=60+args.cores*30)
+            
         qemu_instance.expect(CSV_ROW_BEGIN)
         qemu_instance.expect(CSV_ROW_END)
         
