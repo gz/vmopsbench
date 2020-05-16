@@ -15,7 +15,7 @@ rm *.log *.csv *.png *.pdf /dev/shm/vmops_bench_* || true
 sudo sysctl -w vm.max_map_count=50000000
 echo 192 | sudo tee  /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
 
-SAMPLES=1000
+SAMPLES=100000
 DURATION_MS=10000
 MAX_CORES=`nproc`
 
