@@ -44,7 +44,7 @@ where
 
     pub fn thread_defaults(&mut self) -> &mut Self {
         let topology = MachineTopology::new();
-        let max_cores = topology.cores();
+        let max_cores = topology.cores(false);
 
         // On larger machines thread increments are bigger than on
         // smaller machines:
@@ -153,7 +153,7 @@ where
 
         for tm in self.thread_mappings.iter() {
             for ts in self.threads.iter() {
-                let cpus = topology.allocate(*tm, *ts, true);
+                let cpus = topology.allocate(*tm, *ts, false);
                 let cores: Vec<u64> = cpus.iter().map(|c| c.cpu).collect();
                 let mut result: HashMap<u64, Vec<usize>> = HashMap::with_capacity(*ts);
                 println!("Run Benchmark={} TM={} Cores={}", name, *tm, ts);
@@ -220,12 +220,13 @@ fn main() {
 
     let file_name = "fsops_benchmark.csv";
     let _ret = std::fs::remove_file(file_name);
+    let thread_mapping = ThreadMapping::Sequential;
 
     // Read a block in a private file
     if versions.contains(&"drbl") {
         BenchMark::<DRBL>::new()
             .thread_defaults()
-            .thread_mapping(ThreadMapping::Interleave)
+            .thread_mapping(thread_mapping)
             .start(duration, "drbl", file_name);
     }
 
@@ -233,7 +234,7 @@ fn main() {
     if versions.contains(&"drbh") {
         BenchMark::<DRBH>::new()
             .thread_defaults()
-            .thread_mapping(ThreadMapping::Interleave)
+            .thread_mapping(thread_mapping)
             .start(duration, "drbh", file_name);
     }
 
@@ -241,7 +242,7 @@ fn main() {
     if versions.contains(&"dwol") {
         BenchMark::<DWOL>::new()
             .thread_defaults()
-            .thread_mapping(ThreadMapping::Interleave)
+            .thread_mapping(thread_mapping)
             .start(duration, "dwol", file_name);
     }
 
@@ -249,7 +250,7 @@ fn main() {
     if versions.contains(&"dwom") {
         BenchMark::<DWOM>::new()
             .thread_defaults()
-            .thread_mapping(ThreadMapping::Interleave)
+            .thread_mapping(thread_mapping)
             .start(duration, "dwom", file_name);
     }
 
@@ -257,7 +258,7 @@ fn main() {
     if versions.contains(&"dwal") {
         BenchMark::<DWAL>::new()
             .thread_defaults()
-            .thread_mapping(ThreadMapping::Interleave)
+            .thread_mapping(thread_mapping)
             .start(duration, "dwal", file_name);
     }
 
@@ -265,7 +266,7 @@ fn main() {
     if versions.contains(&"mwrl") {
         BenchMark::<MWRL>::new()
             .thread_defaults()
-            .thread_mapping(ThreadMapping::Interleave)
+            .thread_mapping(thread_mapping)
             .start(duration, "mwrl", file_name);
     }
 
@@ -273,7 +274,7 @@ fn main() {
     if versions.contains(&"mwrm") {
         BenchMark::<MWRM>::new()
             .thread_defaults()
-            .thread_mapping(ThreadMapping::Interleave)
+            .thread_mapping(thread_mapping)
             .start(duration, "mwrm", file_name);
     }
 }

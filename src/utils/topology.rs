@@ -156,8 +156,17 @@ impl MachineTopology {
     }
 
     /// Return how many processing units that the system has
-    pub fn cores(&self) -> usize {
-        self.data.len()
+    pub fn cores(&self, use_ht: bool) -> usize {
+        if use_ht {
+            self.data.len()
+        } else {
+            let mut cpus = self.data.clone();
+            if !use_ht {
+                cpus.sort_by_key(|c| c.core);
+                cpus.dedup_by(|a, b| a.core == b.core);
+            }
+            cpus.len()
+        }
     }
 
     pub fn sockets(&self) -> Vec<Socket> {
