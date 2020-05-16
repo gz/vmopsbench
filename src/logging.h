@@ -116,7 +116,7 @@ extern FILE *latout;
 // prints time elapsed, thread id, number of operations so far on this thread, time of the operation
 #define LOG_STATS_HEADER()                                                                        \
     fprintf(stderr, "====================== BEGIN STATS ======================\n");               \
-    fprintf(thptout, "benchmark,core,ncores,memsize,numainterleave,mappings_size,page_"           \
+    fprintf(latout, "benchmark,core,ncores,memsize,numainterleave,mappings_size,page_"           \
                     "size,memobj,isolation,threadid,elapsed,couter,latency\n");  
 
 #define LOG_STATS_FOOTER()                                                                        \
