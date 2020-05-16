@@ -176,8 +176,17 @@ for benchmark in $benchmarks; do
 	    THPT_CSVFILE=vmops_linux_${benchmark}_threads_${cores}_throughput_results.csv
 	    LATENCY_CSVFILE=vmops_linux_${benchmark}_threads_${cores}_latency_results.csv
 	    
+	    NUM_SAMPES=$SAMPLES
+	    if [[ $cores > 100 ]]; then 
+	    	NUM_SAMPES=25000
+	    elif [[ $cores > 50 ]]; then 
+	       	NUM_SAMPES=50000
+	    else 
+	    	NUM_SAMPES=100000
+	    fi
+	    
         cat /proc/interrupts | grep TLB | tee -a $LOGFILE;
-        (./bin/vmops -z $LATENCY_CSVFILE -p $cores -n $SAMPLES -s $SAMPLES -r 0 -m $memsz -b ${benchmark} ${numa} ${huge} | tee $THPT_CSVFILE) 3>&1 1>&2 2>&3 | tee -a $LOGFILE
+        (./bin/vmops -z $LATENCY_CSVFILE -p $cores -n $NUM_SAMPES -s $NUM_SAMPES -r 0 -m $memsz -b ${benchmark} ${numa} ${huge} | tee $THPT_CSVFILE) 3>&1 1>&2 2>&3 | tee -a $LOGFILE
         
         tail -n +2 $THPT_CSVFILE >> $THPT_CSVFILE_ALL
         tail -n +2 $LATENCY_CSVFILE >> $LATENCY_CSVFILE_ALL
