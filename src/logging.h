@@ -85,10 +85,9 @@
 extern FILE *thptout;
 
 #define LOG_CSV_HEADER()                                                                          \
-    fprintf(stderr, "===================== BEGIN CSV =====================\n");
-
-/* fprintf(thptout, "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_" \
-                    "size,memobj,isolation,duration,operations\n"); */
+    fprintf(stderr, "===================== BEGIN CSV =====================\n");                   \
+    fprintf(thptout, "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_" \
+                    "size,memobj,isolation,duration,operations\n");
 
 #define LOG_CSV_FOOTER()                                                                          \
     fprintf(stderr, "====================== END CSV ======================\n");
@@ -116,13 +115,12 @@ extern FILE *latout;
 
 // prints time elapsed, thread id, number of operations so far on this thread, time of the operation
 #define LOG_STATS_HEADER()                                                                        \
-    fprintf(stderr, "====================== END CSV ======================\n");
-
-/* fprintf(thptout, "benchmark,core,ncores,memsize,numainterleave,mappings_size,page_" \
-                    "size,memobj,isolation,threadid,elapsed,couter,latency\n"); */
+    fprintf(stderr, "====================== BEGIN STATS ======================\n");               \
+    fprintf(thptout, "benchmark,core,ncores,memsize,numainterleave,mappings_size,page_"           \
+                    "size,memobj,isolation,threadid,elapsed,couter,latency\n");  
 
 #define LOG_STATS_FOOTER()                                                                        \
-    fprintf(stderr, "====================== END CSV ======================\n");
+    fprintf(stderr, "====================== END STATS ======================\n");
 
 
 #define LOG_STATS(_cfg, n, stat)                                                                  \
