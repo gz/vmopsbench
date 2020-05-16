@@ -11,11 +11,12 @@ make profile-maponly-isolated
 make profile-maponly-default-4
 make profile-maponly-isolated-4
 
+
 rm *.log *.csv *.png *.pdf /dev/shm/vmops_bench_* || true
 sudo sysctl -w vm.max_map_count=50000000
 echo 192 | sudo tee  /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
 
-SAMPLES=10000
+SAMPLES=100000
 DURATION_MS=10000
 MAX_CORES=`nproc`
 
@@ -25,7 +26,8 @@ numa=''
 huge=''
 memsize='4096'
 
-BF_DURATION=1000
+BF_DURATION=3000
+BF_SAMPLES=10000
 
 # Run Barrelfish experiments
 if [ "$CI_MACHINE_TYPE" = "skylake4x" ]; then
@@ -68,7 +70,7 @@ for benchmark in $benchmarks; do
 	THPT_CSVFILE=vmops_barrelfish_${benchmark}_threads_1_throughput_results.csv
 	LATENCY_CSVFILE=vmops_barrelfish_${benchmark}_threads_1_latency_results.csv
 	
-    python3 scripts/run_barrelfish.py --verbose --csvthpt "$THPT_CSVFILE" --csvlat "$LATENCY_CSVFILE" --benchmark $benchmark --cores 1 --verbose --hake --time $BF_DURATION || true
+    python3 scripts/run_barrelfish.py --verbose --csvthpt "$THPT_CSVFILE" --csvlat "$LATENCY_CSVFILE" --nops $BF_SAMPLES --benchmark $benchmark --cores 1 --time $BF_DURATION --verbose --hake || true
 
     tail -n +2 $THPT_CSVFILE >> $THPT_CSVFILE_ALL
     tail -n +2 $LATENCY_CSVFILE >> $LATENCY_CSVFILE_ALL
@@ -81,7 +83,7 @@ for benchmark in $benchmarks; do
 	    
 #        cores=`seq 0 1 $corecount`
        	echo "$benchmark with $corecount cores"
-        python3 scripts/run_barrelfish.py --verbose --csvthpt "$THPT_CSVFILE" --csvlat "$LATENCY_CSVFILE" --nops $SAMPLES --benchmark $benchmark --cores $corecount --time $BF_DURATION || true
+        python3 scripts/run_barrelfish.py --verbose --csvthpt "$THPT_CSVFILE" --csvlat "$LATENCY_CSVFILE" --nops $BF_SAMPLES --benchmark $benchmark --cores $corecount --time $BF_DURATION || true
         
         tail -n +2 $THPT_CSVFILE >> $THPT_CSVFILE_ALL
         tail -n +2 $LATENCY_CSVFILE >> $LATENCY_CSVFILE_ALL
