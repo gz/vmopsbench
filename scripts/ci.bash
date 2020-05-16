@@ -40,7 +40,7 @@ for benchmark in $benchmarks; do
 	
 	LOGFILE=vmops_barrelfish_${benchmark}_threads_1_logfile.log
 	CSVFILE=vmops_barrelfish_${benchmark}_threads_1_results.csv
-	python3 scripts/run_barrelfish.py --verbose --benchmark $benchmark  --csvthpt "$CSVFILE" --csvlat "tmp.csv" --cores 1 --verbose --hake --time $BF_DURATION || true
+	python3 scripts/run_barrelfish.py      --benchmark $benchmark  --csvthpt "$CSVFILE" --csvlat "tmp.csv" --cores 1 --hake --time $BF_DURATION || true
 	tail -n +2 $CSVFILE >> $CSVFILE_ALL	
 
     for corecount in 2 4 8 16; do
@@ -50,7 +50,7 @@ for benchmark in $benchmarks; do
 		LOGFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_logfile.log
 		CSVFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_results.csv
        	
-        python3 scripts/run_barrelfish.py --verbose  --csvthpt "$CSVFILE" --csvlat "tmp.csv" --benchmark $benchmark --cores $corecount --time $BF_DURATION || true
+        python3 scripts/run_barrelfish.py --csvthpt "$CSVFILE" --csvlat "tmp.csv" --benchmark $benchmark --cores $corecount --time $BF_DURATION || true
         
 		if [ -f $CSVFILE ]; then
 	        tail -n +2 $CSVFILE >> $CSVFILE_ALL
@@ -74,7 +74,7 @@ for benchmark in $benchmarks; do
 	THPT_CSVFILE=vmops_barrelfish_${benchmark}_threads_1_throughput_results.csv
 	LATENCY_CSVFILE=vmops_barrelfish_${benchmark}_threads_1_latency_results.csv
 	
-    python3 scripts/run_barrelfish.py --verbose --csvthpt "$THPT_CSVFILE" --csvlat "$LATENCY_CSVFILE" --nops $BF_SAMPLES --benchmark $benchmark --cores 1 --time $BF_DURATION --verbose --hake || true
+    python3 scripts/run_barrelfish.py --csvthpt "$THPT_CSVFILE" --csvlat "$LATENCY_CSVFILE" --nops $BF_SAMPLES --benchmark $benchmark --cores 1 --time $BF_DURATION --hake || true
 
     tail -n +2 $THPT_CSVFILE >> $THPT_CSVFILE_ALL
     tail -n +2 $LATENCY_CSVFILE >> $LATENCY_CSVFILE_ALL
@@ -87,7 +87,7 @@ for benchmark in $benchmarks; do
 	    
 #        cores=`seq 0 1 $corecount`
        	echo "$benchmark with $corecount cores"
-        python3 scripts/run_barrelfish.py --verbose --csvthpt "$THPT_CSVFILE" --csvlat "$LATENCY_CSVFILE" --nops $BF_SAMPLES --benchmark $benchmark --cores $corecount --time $BF_DURATION || true
+        python3 scripts/run_barrelfish.py --csvthpt "$THPT_CSVFILE" --csvlat "$LATENCY_CSVFILE" --nops $BF_SAMPLES --benchmark $benchmark --cores $corecount --time $BF_DURATION || true
         
         
         if [ -f $THPT_CSVFILE ]; then
