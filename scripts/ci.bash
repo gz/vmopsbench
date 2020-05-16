@@ -45,10 +45,10 @@ for benchmark in $benchmarks; do
         cores=`seq 0 1 $corecount`
 		echo "$benchmark with $corecount cores"
        	
-		LOGFILE=vmops_barrelfish_${benchmark}_threads_${cores}_logfile.log
-		CSVFILE=vmops_barrelfish_${benchmark}_threads_${cores}_results.csv
+		LOGFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_logfile.log
+		CSVFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_results.csv
        	
-        python3 scripts/run_barrelfish.py --verbose  --csvthpt "$CSVFILE" --csvlat "tmp.csv" --benchmark $benchmark --cores $cores --time $BF_DURATION || true
+        python3 scripts/run_barrelfish.py --verbose  --csvthpt "$CSVFILE" --csvlat "tmp.csv" --benchmark $benchmark --cores $corecount --time $BF_DURATION || true
         
         tail -n +2 $CSVFILE >> $CSVFILE_ALL
     done
@@ -75,9 +75,9 @@ for benchmark in $benchmarks; do
         
     for corecount in 2 4 8 16; do
 
-		LOGFILE=vmops_barrelfish_${benchmark}_threads_${cores}_latency_logfile.log
-		THPT_CSVFILE=vmops_barrelfish_${benchmark}_threads_${cores}_throughput_results.csv
-		LATENCY_CSVFILE=vmops_barrelfish_${benchmark}_threads_${cores}_latency_results.csv
+		LOGFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_latency_logfile.log
+		THPT_CSVFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_throughput_results.csv
+		LATENCY_CSVFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_latency_results.csv
 	    
 #        cores=`seq 0 1 $corecount`
        	echo "$benchmark with $corecount cores"
