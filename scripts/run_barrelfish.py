@@ -57,7 +57,7 @@ parser.add_argument("-v", "--verbose", action="store_true",
                     help="increase output verbosity")
 parser.add_argument("-n", "--norun", action="store_true",
                     help="Only build, don't run")
-parser.add_argument("-c", "--cores", type=int, nargs='+',
+parser.add_argument("-c", "--cores", type=int, 
                     help="How many cores to run on")
 parser.add_argument("-b", "--benchmark",
                     help="How many cores to run on")
@@ -67,6 +67,10 @@ parser.add_argument("-t", "--time", type=int, default=-1,
                     help="how long to run the benchmark")
 parser.add_argument("--hake", action="store_true", default=False,
                     help="Run hake to regen Makefile")
+parser.add_argument("--csvthpt", type=str,
+                    help="CSV file for throughput measurements")
+parser.add_argument("--csvlat",  type=str,
+                    help="CSV file for latency measurements")
 
 
 def log(msg):
@@ -81,7 +85,11 @@ BARRELIFH_BUILD = BARRELFISH_DIR / 'build'
 VMOPS_DIR = SCRIPT_PATH / '..'
 MENU_LST_PATH = BARRELFISH_DIR / 'build' / \
     'platforms' / 'x86' / 'menu.lst.x86_64'
-RESULTS_CSV = SCRIPT_PATH / '..' / 'barrelfish_results.csv'
+
+RESULTS_PATH = SCRIPT_PATH / '..' 
+
+
+
 
 
 def get_barreflish(args):
@@ -176,39 +184,51 @@ def run_barrelfish(args):
         return True
 
     log("Running Barrelfish {}".format(args.cores))
-    for i in args.cores:
-        with open(MENU_LST_PATH, 'w') as menu_lst_file:
-            if args.nops != -1:
-                bench_arg = "-o {} -s {} -r 0".format(args.nops, args.nops)
-            elif args.time != -1:
-                bench_arg = "-t {}".format(args.time)
-            else:
-                bench_arg = "-t 4000"
-            mem = "4096"
-            if args.benchmark.startswith("elevate") :
-                mem = "40960000"
 
-            my_menu = MENU_LST.format(i, bench_arg, args.benchmark, mem)
-            if args.verbose:
-                print("Using the following generated menu.lst")
-                print(my_menu)
-            menu_lst_file.write(my_menu)
+    with open(MENU_LST_PATH, 'w') as menu_lst_file:
+        if args.nops != -1:
+            bench_arg = "-o {} -s {} -r 0".format(args.nops, args.nops)
+        elif args.time != -1:
+            bench_arg = "-t {}".format(args.time)
+        else:
+            bench_arg = "-t 4000"
+        mem = "4096"
+        if args.benchmark.startswith("elevate") :
+            mem = "40960000"
 
-        with local.cwd(BARRELIFH_BUILD):
-            cmd_args = ["../tools/qemu-wrapper.sh",
-                        "--menu", "platforms/x86/menu.lst.x86_64", "--arch", "x86_64"]
-            if args.verbose:
-                print(" ".join(cmd_args))
-            CSV_ROW_BEGIN = "===================== BEGIN CSV ====================="
-            CSV_ROW_END = "====================== END CSV ======================"
-            qemu_instance = pexpect.spawn(
-                ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': str(18), 'MEMORY': '32G'}, timeout=60+i*12)
-            qemu_instance.expect(CSV_ROW_BEGIN)
-            qemu_instance.expect(CSV_ROW_END)
-            results = qemu_instance.before.decode('utf-8')
-            with open(RESULTS_CSV, 'a') as results_file:
-                print(results.strip())
-                results_file.write(results.strip() + "\n")
+        my_menu = MENU_LST.format(args.cores, bench_arg, args.benchmark, mem)
+        if args.verbose:
+            print("Using the following generated menu.lst")
+            print(my_menu)
+        menu_lst_file.write(my_menu)
+
+    with local.cwd(BARRELIFH_BUILD):
+        cmd_args = ["../tools/qemu-wrapper.sh",
+                    "--menu", "platforms/x86/menu.lst.x86_64", "--arch", "x86_64"]
+        if args.verbose:
+            print(" ".join(cmd_args))
+        CSV_ROW_BEGIN = "===================== BEGIN CSV ====================="
+        CSV_ROW_END = "====================== END CSV ======================"
+        qemu_instance = pexpect.spawn(
+            ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': str(18), 'MEMORY': '32G'}, timeout=60+args.cores*12)
+        qemu_instance.expect(CSV_ROW_BEGIN)
+        qemu_instance.expect(CSV_ROW_END)
+        
+        results = qemu_instance.before.decode('utf-8')
+        with open(RESULTS_PATH / args.csvthpt, 'a') as results_file:
+            print(results.strip())
+            results_file.write(results.strip() + "\n")
+            
+        if args.nops != -1 :
+			qemu_instance.expect("====================== BEGIN STATS ======================")
+			qemu_instance.expect("====================== END STATS ======================")
+			results = qemu_instance.before.decode('utf-8')
+
+	        with open(RESULTS_PATH / args.csvlat, 'a') as results_file:
+	            print(results.strip())
+	            results_file.write(results.strip() + "\n")				
+				
+				
 
 
 if __name__ == '__main__':

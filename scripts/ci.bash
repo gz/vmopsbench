@@ -32,22 +32,62 @@ if [ "$CI_MACHINE_TYPE" = "skylake4x" ]; then
 
 for benchmark in $benchmarks; do
 	echo $benchmark 
-    python3 scripts/run_barrelfish.py --verbose --benchmark $benchmark --cores 1 --verbose --hake --time $BF_DURATION || true
+	
+	CSVFILE_ALL=vmops_barrelfish_${benchmark}_threads_all_results.csv
+	echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $CSVFILE_ALL
+	
+	LOGFILE=vmops_barrelfish_${benchmark}_threads_1_logfile.log
+	CSVFILE=vmops_barrelfish_${benchmark}_threads_1_results.csv
+	python3 scripts/run_barrelfish.py --verbose --benchmark $benchmark  --csvthpt "$CSVFILE" --csvlat "tmp.csv" --cores 1 --verbose --hake --time $BF_DURATION || true
+	tail -n +2 $CSVFILE >> $CSVFILE_ALL	
+
     for corecount in 2 4 8 16; do
         cores=`seq 0 1 $corecount`
-       	echo "$benchmark with $corecount cores"
-        python3 scripts/run_barrelfish.py --verbose --benchmark $benchmark --cores $cores --time $BF_DURATION || true
+		echo "$benchmark with $corecount cores"
+       	
+		LOGFILE=vmops_barrelfish_${benchmark}_threads_${cores}_logfile.log
+		CSVFILE=vmops_barrelfish_${benchmark}_threads_${cores}_results.csv
+       	
+        python3 scripts/run_barrelfish.py --verbose  --csvthpt "$CSVFILE" --csvlat "tmp.csv" --benchmark $benchmark --cores $cores --time $BF_DURATION || true
+        
+        tail -n +2 $CSVFILE >> $CSVFILE_ALL
     done
 done
 
 for benchmark in $benchmarks; do
 	echo $benchmark
-    python3 scripts/run_barrelfish.py --verbose --benchmark $benchmark --cores 1 --verbose --hake --time $BF_DURATION || true
+	
+	
+	THPT_CSVFILE_ALL=vmops_barrelfish_${benchmark}_threads_all_latency_results.csv
+	LATENCY_CSVFILE_ALL=vmops_barrelfish_${benchmark}_threads_all_throughput_results.csv
+	
+    echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $THPT_CSVFILE_ALL
+    echo "benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,threadid,elapsed,couter,latency" | tee $LATENCY_CSVFILE_ALL
+	
+	LOGFILE=vmops_barrelfish_${benchmark}_threads_1_latency_logfile.log
+	THPT_CSVFILE=vmops_barrelfish_${benchmark}_threads_1_throughput_results.csv
+	LATENCY_CSVFILE=vmops_barrelfish_${benchmark}_threads_1_latency_results.csv
+	
+    python3 scripts/run_barrelfish.py --verbose --csvthpt "$THPT_CSVFILE" --csvlat "$LATENCY_CSVFILE" --benchmark $benchmark --cores 1 --verbose --hake --time $BF_DURATION || true
+
+    tail -n +2 $THPT_CSVFILE >> $THPT_CSVFILE_ALL
+    tail -n +2 $LATENCY_CSVFILE >> $LATENCY_CSVFILE_ALL
+        
     for corecount in 2 4 8 16; do
-        cores=`seq 0 1 $corecount`
+
+		LOGFILE=vmops_barrelfish_${benchmark}_threads_${cores}_latency_logfile.log
+		THPT_CSVFILE=vmops_barrelfish_${benchmark}_threads_${cores}_throughput_results.csv
+		LATENCY_CSVFILE=vmops_barrelfish_${benchmark}_threads_${cores}_latency_results.csv
+	    
+#        cores=`seq 0 1 $corecount`
        	echo "$benchmark with $corecount cores"
-        python3 scripts/run_barrelfish.py --verbose --nops $SAMPLES --benchmark $benchmark --cores $cores --time $BF_DURATION || true
+        python3 scripts/run_barrelfish.py --verbose --csvthpt "$THPT_CSVFILE" --csvlat "$LATENCY_CSVFILE" --nops $SAMPLES --benchmark $benchmark --cores $corecount --time $BF_DURATION || true
+        
+        tail -n +2 $THPT_CSVFILE >> $THPT_CSVFILE_ALL
+        tail -n +2 $LATENCY_CSVFILE >> $LATENCY_CSVFILE_ALL
     done
+    
+    rm -rf $LATENCY_CSVFILE_ALL
 done
 
 else
@@ -55,7 +95,7 @@ else
 ## Ideally we build this stuff in docker (since we require ubuntu 19.10 but skylake2x are on 18.04):
 ## BF_SOURCE=$(readlink -f `pwd`)
 ## BF_BUILD=$BF_SOURCE/build
-## BF_DOCKER=achreto/barrelfish-ci:20.04
+## BF_DOCKER=achreto/barrelfish-ci:20.04-lts
 ## echo "bfdocker: $BF_DOCKER"
 ## echo "bfsrc: $BF_SOURCE  build: $BF_BUILD"
 ## # pull the docker image
@@ -73,22 +113,27 @@ fi
 
 for benchmark in $benchmarks; do
     echo $benchmark
-
-    LOGFILE=results_${benchmark}.log
-    CSVFILE=results_${benchmark}.csv
     
     if [[ "$benchmark" = "elevate-isolated-shared" ]]; then
         memsz='40960000'
     else
         memsz='4096'
     fi
-
-    echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $CSVFILE
+    
+    CSVFILE_ALL=vmops_linux_${benchmark}_threads_all_results.csv
+    echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $CSVFILE_ALL
     for cores in `seq 0 8 $MAX_CORES`; do
+    
+   	    LOGFILE=vmops_linux_${benchmark}_threads_${cores}_logfile.log
+	    CSVFILE=vmops_linux_${benchmark}_threads_${cores}_results.csv
+    
         cat /proc/interrupts | grep TLB | tee -a $LOGFILE;
         (./bin/vmops -p $cores -t $DURATION_MS -m $memsz -b ${benchmark} ${numa} ${huge} | tee -a $CSVFILE) 3>&1 1>&2 2>&3 | tee -a $LOGFILE
+        
+        tail -n +2 $CSVFILE >> $CSVFILE_ALL
     done
-    python3 scripts/plot.py $CSVFILE
+   	
+    python3 scripts/plot.py $CSVFILE_ALL
 
 done
 
@@ -96,24 +141,34 @@ done
 for benchmark in $benchmarks; do
     echo $benchmark
 
-    LOGFILE=results_${benchmark}_latency.log
-    THPT_CSVFILE=results_${benchmark}_throughput.csv
-    LATENCY_CSVFILE=results_${benchmark}_latency.csv
-    
     if [[ "$benchmark" = "elevate-isolated-shared" ]]; then
         memsz='40960000'
     else
         memsz='4096'
     fi    
-
-    echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $THPT_CSVFILE
-    echo "benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,threadid,elapsed,couter,latency" | tee $LATENCY_CSVFILE
+	
+	THPT_CSVFILE_ALL=vmops_linux_${benchmark}_threads_all_latency_results.csv
+	LATENCY_CSVFILE_ALL=vmops_linux_${benchmark}_threads_all_throughput_results.csv
+	
+    echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $THPT_CSVFILE_ALL
+    echo "benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,threadid,elapsed,couter,latency" | tee $LATENCY_CSVFILE_ALL
     for cores in `seq 0 8 $MAX_CORES`; do
+    
+   	    LOGFILE=vmops_linux_${benchmark}_threads_${cores}_latency_logfile.log
+	    THPT_CSVFILE=vmops_linux_${benchmark}_threads_${cores}_throughput_results.csv
+	    LATENCY_CSVFILE=vmops_linux_${benchmark}_threads_${cores}_latency_results.csv
+	    
         cat /proc/interrupts | grep TLB | tee -a $LOGFILE;
         (./bin/vmops -z $LATENCY_CSVFILE -p $cores -n $SAMPLES -s $SAMPLES -r 0 -m $memsz -b ${benchmark} ${numa} ${huge} | tee -a $THPT_CSVFILE) 3>&1 1>&2 2>&3 | tee -a $LOGFILE
+        
+        tail -n +2 $THPT_CSVFILE >> $THPT_CSVFILE_ALL
+        tail -n +2 $LATENCY_CSVFILE >> $LATENCY_CSVFILE_ALL
     done
-    python3 scripts/plot.py $THPT_CSVFILE
-    python3 scripts/plot.py $LATENCY_CSVFILE
+    
+    python3 scripts/plot.py $THPT_CSVFILE_ALL
+    python3 scripts/plot.py $LATENCY_CSVFILE_ALL
+    
+    rm -rf $LATENCY_CSVFILE_ALL
 done
 
 
