@@ -220,13 +220,13 @@ def run_barrelfish(args):
             results_file.write(results.strip() + "\n")
             
         if args.nops != -1 :
-			qemu_instance.expect("====================== BEGIN STATS ======================")
-			qemu_instance.expect("====================== END STATS ======================")
-			results = qemu_instance.before.decode('utf-8')
+            qemu_instance.expect("====================== BEGIN STATS ======================")
+            qemu_instance.expect("====================== END STATS ======================")
+            results = qemu_instance.before.decode('utf-8')
 
-	        with open(RESULTS_PATH / args.csvlat, 'a') as results_file:
-	            print(results.strip())
-	            results_file.write(results.strip() + "\n")				
+            with open(RESULTS_PATH / args.csvlat, 'a') as results_file:
+                print(results.strip())
+                results_file.write(results.strip() + "\n")
 				
 				
 
