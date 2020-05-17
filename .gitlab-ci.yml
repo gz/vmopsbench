@@ -12,7 +12,7 @@ build:
   script:
     - make
 
-benchmark:skylake2x:linuxlatency
+benchmark:skylake2x:linuxlatency:
   stage: benchmark
   script:
     - bash scripts/ci-linux.bash latency
@@ -25,7 +25,7 @@ benchmark:skylake2x:linuxlatency
     - linux
     - throughput
     
-benchmark:skylake2x:linuxthroughput
+benchmark:skylake2x:linuxthroughput:
   stage: benchmark
   script:
     - bash scripts/ci-linux.bash throughput
@@ -39,7 +39,7 @@ benchmark:skylake2x:linuxthroughput
     - throughput
        
 
-benchmark:skylake4x:linuxlatency
+benchmark:skylake4x:linuxlatency:
   stage: benchmark
   script:
     - bash scripts/ci-linux.bash latency
@@ -53,7 +53,7 @@ benchmark:skylake4x:linuxlatency
     - latency
     
     
-benchmark:skylake4x:linuxthroughput
+benchmark:skylake4x:linuxthroughput:
   stage: benchmark
   script:
     - bash scripts/ci-linux.bash throughput
@@ -67,7 +67,7 @@ benchmark:skylake4x:linuxthroughput
     - throughput    
 
 
-benchmark:skylake4x:barrelfishthroughput
+benchmark:skylake4x:barrelfishthroughput:
   stage: benchmark
   script:
     - bash scripts/ci-barrelfish.bash throughput
@@ -81,7 +81,7 @@ benchmark:skylake4x:barrelfishthroughput
     - throughput  
  
  
-benchmark:skylake4x:barrelfishlatency
+benchmark:skylake4x:barrelfishlatency:
   stage: benchmark
   script:
     - bash scripts/ci-barrelfish.bash latency
