@@ -16,15 +16,15 @@ NR_1G_Pages=33
 
 if [ -d /sys/kernel/mm/hugepages/hugepages-1048576kB ]; then
 	echo "Setting $NR_1G_Pages 1GB Pages"
-	echo 33 | sudo tee > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
+	echo 33 | sudo tee /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
 	NRHUGEPAGES=$(cat /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages)
 	if [[ $NRHUGEPAGES == 0 ]]; then
 		echo "Setting $NR_2M_PAGES 2MB Pages"
-		echo 16896 | sudo tee > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+		echo 16896 | sudo tee /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
 	fi
 elif [ -d /sys/kernel/mm/hugepages/hugepages-2048kB ]; then
 	echo "Setting $NR_2M_PAGES 2MB Pages"
-	echo $NR_2M_PAGES | sudo tee > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+	echo $NR_2M_PAGES | sudo tee /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
 else
 	echo "NO HUGEPAGES AVAILABLE"
 fi
@@ -172,7 +172,7 @@ git clean -f
 
 
 if [ -d /sys/kernel/mm/hugepages/hugepages-1048576kB ]; then
-	echo 0 | sudo tee > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
+	echo 0 | sudo tee /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
 elif [ -d /sys/kernel/mm/hugepages/hugepages-2048kB ]; then
-	echo 0 | sudo tee > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+	echo 0 | sudo tee /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
 fi
