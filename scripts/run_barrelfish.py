@@ -213,6 +213,12 @@ def run_barrelfish(args):
         qemu_instance = pexpect.spawn(
             ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': str(18), 'MEMORY': '32G'}, timeout=60+args.cores*90)
             
+            
+        memopt = ["USING HUGE MEM OPTION 1GB", "USING HUGE MEM OPTION 2MB"]
+        idx = qemu_instance.expect(memopt)
+        print("FOUND: %s" % memopt[idx]);
+        qemu_instance.expect("-enable-kvm")
+                            
         qemu_instance.expect(CSV_ROW_BEGIN)
         qemu_instance.expect(CSV_ROW_END)
         
@@ -229,7 +235,8 @@ def run_barrelfish(args):
             with open(RESULTS_PATH / args.csvlat, 'a') as results_file:
                 #print(results.strip())
                 results_file.write(results.strip() + "\n")
-				
+		
+		qemu_instance.terminate(force=True)
 				
 
 

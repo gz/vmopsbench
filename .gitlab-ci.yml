@@ -12,25 +12,84 @@ build:
   script:
     - make
 
-benchmark:skylake2x:
+benchmark:skylake2x:linuxlatency
   stage: benchmark
   script:
-    - bash scripts/ci.bash
+    - bash scripts/ci-linux.bash latency
   dependencies:
     - build
   variables:
     GIT_STRATEGY: fetch
   tags:
     - skylake2x
-
-benchmark:skylake4x:
+    - linux
+    - throughput
+    
+benchmark:skylake2x:linuxthroughput
   stage: benchmark
   script:
-    - bash scripts/ci.bash
+    - bash scripts/ci-linux.bash throughput
+  dependencies:
+    - build
+  variables:
+    GIT_STRATEGY: fetch
+  tags:
+    - skylake2x
+    - linux
+    - throughput
+       
+
+benchmark:skylake4x:linuxlatency
+  stage: benchmark
+  script:
+    - bash scripts/ci-linux.bash latency
   dependencies:
     - build
   variables:
     GIT_STRATEGY: fetch
   tags:
     - skylake4x
+    - linux
+    - latency
+    
+    
+benchmark:skylake4x:linuxthroughput
+  stage: benchmark
+  script:
+    - bash scripts/ci-linux.bash throughput
+  dependencies:
+    - build
+  variables:
+    GIT_STRATEGY: fetch
+  tags:
+    - skylake4x
+    - linux
+    - throughput    
 
+
+benchmark:skylake4x:barrelfishthroughput
+  stage: benchmark
+  script:
+    - bash scripts/ci-barrelfish.bash throughput
+  dependencies:
+    - build
+  variables:
+    GIT_STRATEGY: fetch
+  tags:
+    - skylake4x
+    - barrelfish
+    - throughput  
+ 
+ 
+benchmark:skylake4x:barrelfishlatency
+  stage: benchmark
+  script:
+    - bash scripts/ci-barrelfish.bash latency
+  dependencies:
+    - build
+  variables:
+    GIT_STRATEGY: fetch
+  tags:
+    - skylake4x
+    - barrelfish
+    - latency  
