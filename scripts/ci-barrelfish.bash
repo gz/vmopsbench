@@ -16,7 +16,7 @@ NR_1G_Pages=33
 
 if [ -d /sys/kernel/mm/hugepages/hugepages-1048576kB ]; then
 	echo "Setting $NR_1G_Pages 1GB Pages"
-	echo 33 | sudo tee > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages 
+	echo 33 | sudo tee > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
 	NRHUGEPAGES=$(cat /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages)
 	if [[ $NRHUGEPAGES == 0 ]]; then
 		echo "Setting $NR_2M_PAGES 2MB Pages"
@@ -29,8 +29,8 @@ else
 	echo "NO HUGEPAGES AVAILABLE"
 fi
 
-cat /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages 
-cat /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages 
+cat /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
+cat /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
 
 
 SAMPLES=100000
@@ -54,83 +54,83 @@ fi
 
 
 
-if [[ "$1" = "throughput" ]]; then 
+if [[ "$1" = "throughput" ]]; then
 
 	for benchmark in $benchmarks; do
-		echo $benchmark 
-		
+		echo $benchmark
+
 		CSVFILE_ALL=vmops_barrelfish_${benchmark}_threads_all_results.csv
 		echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $CSVFILE_ALL
-		
+
 		LOGFILE=vmops_barrelfish_${benchmark}_threads_1_logfile.log
 		CSVFILE=vmops_barrelfish_${benchmark}_threads_1_results.csv
 		python3 scripts/run_barrelfish.py      --benchmark $benchmark  --csvthpt "$CSVFILE" --csvlat "tmp.csv" --cores 1 --hake --time $BF_DURATION || true
-		tail -n +2 $CSVFILE >> $CSVFILE_ALL	
+		tail -n +2 $CSVFILE >> $CSVFILE_ALL
 
 		for corecount in 2 4 8 16; do
 		    cores=`seq 0 1 $corecount`
 			echo "$benchmark with $corecount cores"
-		   	
+
 			LOGFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_logfile.log
 			CSVFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_results.csv
-		   	
+
 		    python3 scripts/run_barrelfish.py --csvthpt "$CSVFILE" --csvlat "tmp.csv" --benchmark $benchmark --cores $corecount --time $BF_DURATION || true
-		    
+
 			if [ -f $CSVFILE ]; then
 			    tail -n +2 $CSVFILE >> $CSVFILE_ALL
-		    else 
+		    else
 		    	echo "WARNING: $CSVFILE does not exists!!"
 		    fi
 		done
 	done
 
-elif [[ "$1" = "latency" ]]; then 
+elif [[ "$1" = "latency" ]]; then
 
 	for benchmark in $benchmarks; do
 		echo $benchmark
-		
-		
+
+
 		THPT_CSVFILE_ALL=vmops_barrelfish_${benchmark}_threads_all_latency_results.csv
 		LATENCY_CSVFILE_ALL=vmops_barrelfish_${benchmark}_threads_all_throughput_results.csv
-		
+
 		echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $THPT_CSVFILE_ALL
 		echo "benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,threadid,elapsed,couter,latency" | tee $LATENCY_CSVFILE_ALL
-		
+
 		LOGFILE=vmops_barrelfish_${benchmark}_threads_1_latency_logfile.log
 		THPT_CSVFILE=vmops_barrelfish_${benchmark}_threads_1_throughput_results.csv
 		LATENCY_CSVFILE=vmops_barrelfish_${benchmark}_threads_1_latency_results.csv
-		
+
 		python3 scripts/run_barrelfish.py --csvthpt "$THPT_CSVFILE" --csvlat "$LATENCY_CSVFILE" --nops $BF_SAMPLES --benchmark $benchmark --cores 1 --time $BF_DURATION --hake || true
 
 		tail -n +2 $THPT_CSVFILE >> $THPT_CSVFILE_ALL
 		tail -n +2 $LATENCY_CSVFILE >> $LATENCY_CSVFILE_ALL
-		    
+
 		for corecount in 2 4 8 16; do
 
 			LOGFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_latency_logfile.log
 			THPT_CSVFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_throughput_results.csv
 			LATENCY_CSVFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_latency_results.csv
-			
+
 	#        cores=`seq 0 1 $corecount`
 		   	echo "$benchmark with $corecount cores"
 		    python3 scripts/run_barrelfish.py --csvthpt "$THPT_CSVFILE" --csvlat "$LATENCY_CSVFILE" --nops $BF_SAMPLES --benchmark $benchmark --cores $corecount --time $BF_DURATION || true
-		    
-		    
+
+
 		    if [ -f $THPT_CSVFILE ]; then
 			    tail -n +2 $THPT_CSVFILE >> $THPT_CSVFILE_ALL
-		    else 
-		    	echo "WARNING: $THPT_CSVFILE does not exists!!"        
+		    else
+		    	echo "WARNING: $THPT_CSVFILE does not exists!!"
 		    fi
 
 		    if [ -f $LATENCY_CSVFILE ]; then
 			    tail -n +2 $LATENCY_CSVFILE >> $LATENCY_CSVFILE_ALL
-		    else 
+		    else
 		    	echo "WARNING: $LATENCY_CSVFILE does not exists!!"
 		    fi
 
-		    
+
 		done
-		
+
 		rm -rf $LATENCY_CSVFILE_ALL
 	done
 
@@ -151,6 +151,9 @@ DEPLOY_DIR="gh-pages/vmops/${CI_MACHINE_TYPE}/${GIT_REV_CURRENT}/"
 mkdir -p ${DEPLOY_DIR}
 cp gh-pages/vmops/index.markdown ${DEPLOY_DIR}
 
+
+ls -lh
+
 gzip *.csv
 gzip *.log
 mv *.log.gz ${DEPLOY_DIR}
@@ -169,7 +172,7 @@ git clean -f
 
 
 if [ -d /sys/kernel/mm/hugepages/hugepages-1048576kB ]; then
-	echo 0 | sudo tee > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages 
+	echo 0 | sudo tee > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
 elif [ -d /sys/kernel/mm/hugepages/hugepages-2048kB ]; then
 	echo 0 | sudo tee > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
 fi
