@@ -48,7 +48,7 @@ where
 
         // On larger machines thread increments are bigger than on
         // smaller machines:
-        let thread_incremements = if max_cores > 120 {
+        let thread_incremements = if max_cores > 90 {
             8
         } else if max_cores > 24 {
             4
