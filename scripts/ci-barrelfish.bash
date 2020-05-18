@@ -158,8 +158,8 @@ gzip *.csv
 gzip *.log
 mv *.log.gz ${DEPLOY_DIR}
 mv *.csv.gz ${DEPLOY_DIR}
-mv *.pdf ${DEPLOY_DIR}
-mv *.png ${DEPLOY_DIR}
+#mv *.pdf ${DEPLOY_DIR} 
+#mv *.png ${DEPLOY_DIR}
 
 
 cd gh-pages
