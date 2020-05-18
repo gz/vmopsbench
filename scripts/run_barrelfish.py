@@ -214,9 +214,12 @@ def run_barrelfish(args):
             ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': str(18), 'MEMORY': '32G'}, timeout=60+args.cores*90)
 
 
-        memopt = ["USING HUGE MEM OPTION 1GB", "USING HUGE MEM OPTION 2MB"]
+        qemu_instance.expect("Checking HUGEPAGE availability")
+        memopt = ["NO HUGEPAGES AVAILABLE", "USING HUGE MEM OPTION 1GB", "USING HUGE MEM OPTION 2MB"]
         idx = qemu_instance.expect(memopt)
         print("FOUND: %s" % memopt[idx]);
+        if idx == 0 :
+            print("WARNING!!!!! NO HUGE PAGES FOR KVM!!!")
         qemu_instance.expect("-enable-kvm")
 
         qemu_instance.expect(CSV_ROW_BEGIN)
