@@ -11,16 +11,16 @@ sudo sysctl -w vm.max_map_count=50000000
 #echo 192 | sudo tee  /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
 
 
-NR_2M_PAGES=16896
-NR_1G_Pages=33
+NR_2M_PAGES=25088
+NR_1G_Pages=49
 
 if [ -d /sys/kernel/mm/hugepages/hugepages-1048576kB ]; then
 	echo "Setting $NR_1G_Pages 1GB Pages"
-	echo 33 | sudo tee /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
+	echo $NR_1G_Pages | sudo tee /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
 	NRHUGEPAGES=$(cat /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages)
 	if [[ $NRHUGEPAGES == 0 ]]; then
 		echo "Setting $NR_2M_PAGES 2MB Pages"
-		echo 16896 | sudo tee /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+		echo $NR_2M_PAGES | sudo tee /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
 	fi
 elif [ -d /sys/kernel/mm/hugepages/hugepages-2048kB ]; then
 	echo "Setting $NR_2M_PAGES 2MB Pages"
@@ -67,7 +67,7 @@ if [[ "$1" = "throughput" ]]; then
 		(python3 scripts/run_barrelfish.py      --benchmark $benchmark  --csvthpt "$CSVFILE" --csvlat "tmp.csv" --cores 1 --hake --time $BF_DURATION | tee $LOGFILE) || true
 		tail -n +2 $CSVFILE >> $CSVFILE_ALL
 
-		for corecount in 2 4 8 16; do
+		for corecount in 2 4 8 16 32; do
 		    cores=`seq 0 1 $corecount`
 			echo "$benchmark with $corecount cores"
 
@@ -105,7 +105,7 @@ elif [[ "$1" = "latency" ]]; then
 		tail -n +2 $THPT_CSVFILE >> $THPT_CSVFILE_ALL
 		tail -n +2 $LATENCY_CSVFILE >> $LATENCY_CSVFILE_ALL
 
-		for corecount in 2 4 8 16; do
+		for corecount in 2 4 8 16 32; do
 
 			LOGFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_latency_logfile.log
 			THPT_CSVFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_throughput_results.csv
