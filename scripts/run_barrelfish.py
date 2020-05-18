@@ -220,7 +220,10 @@ def run_barrelfish(args):
         print("FOUND: %s" % memopt[idx]);
         if idx == 0 :
             print("WARNING!!!!! NO HUGE PAGES FOR KVM!!!")
-        qemu_instance.expect("-enable-kvm")
+
+        print(qemu_instance.before.decode('utf-8'))
+
+        qemu_instance.expect("KVM is -enable-kvm")
 
         qemu_instance.expect(CSV_ROW_BEGIN)
         qemu_instance.expect(CSV_ROW_END)
