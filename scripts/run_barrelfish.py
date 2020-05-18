@@ -57,7 +57,7 @@ parser.add_argument("-v", "--verbose", action="store_true",
                     help="increase output verbosity")
 parser.add_argument("-n", "--norun", action="store_true",
                     help="Only build, don't run")
-parser.add_argument("-c", "--cores", type=int, 
+parser.add_argument("-c", "--cores", type=int,
                     help="How many cores to run on")
 parser.add_argument("-b", "--benchmark",
                     help="How many cores to run on")
@@ -86,7 +86,7 @@ VMOPS_DIR = SCRIPT_PATH / '..'
 MENU_LST_PATH = BARRELFISH_DIR / 'build' / \
     'platforms' / 'x86' / 'menu.lst.x86_64'
 
-RESULTS_PATH = SCRIPT_PATH / '..' 
+RESULTS_PATH = SCRIPT_PATH / '..'
 
 
 
@@ -212,21 +212,21 @@ def run_barrelfish(args):
         print("Running with timeout: %d" % (60+args.cores*90))
         qemu_instance = pexpect.spawn(
             ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': str(18), 'MEMORY': '32G'}, timeout=60+args.cores*90)
-            
-            
+
+
         memopt = ["USING HUGE MEM OPTION 1GB", "USING HUGE MEM OPTION 2MB"]
         idx = qemu_instance.expect(memopt)
         print("FOUND: %s" % memopt[idx]);
         qemu_instance.expect("-enable-kvm")
-                            
+
         qemu_instance.expect(CSV_ROW_BEGIN)
         qemu_instance.expect(CSV_ROW_END)
-        
+
         results = qemu_instance.before.decode('utf-8')
         with open(RESULTS_PATH / args.csvthpt, 'a') as results_file:
             print(results.strip())
             results_file.write(results.strip() + "\n")
-            
+
         if args.nops != -1 :
             qemu_instance.expect("====================== BEGIN STATS ======================")
             qemu_instance.expect("====================== END STATS ======================")
@@ -235,9 +235,9 @@ def run_barrelfish(args):
             with open(RESULTS_PATH / args.csvlat, 'a') as results_file:
                 #print(results.strip())
                 results_file.write(results.strip() + "\n")
-		
-		qemu_instance.terminate(force=True)
-				
+
+        qemu_instance.terminate(force=True)
+
 
 
 if __name__ == '__main__':
