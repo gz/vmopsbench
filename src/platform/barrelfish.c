@@ -437,6 +437,58 @@ plat_error_t plat_vm_map(void **addr, size_t size, plat_memobj_t memobj, off_t o
     return PLAT_ERR_OK;
 }
 
+#define MAX_CORES 256
+
+#define NUM_VREGION_BUF 2000
+
+struct vregion_memobj
+{
+    struct vregion vregion;
+    struct memobj_one_frame_one_map memobj;
+};
+
+struct vregion_memobj *vregion_free_list[MAX_CORES] = {0};
+
+struct vregion_buf {
+    struct vregion_memobj *buf;
+    struct vregion_memobj *end;
+} vregion_buf[MAX_CORES] = {0};
+
+
+static int alloc_vregion(struct vregion **retvreg, struct memobj_one_frame_one_map **retmemobj)
+{
+    coreid_t cid = disp_get_core_id();
+    if (vregion_free_list[cid]) {
+        struct vregion_memobj *vm;
+        vm = vregion_free_list[cid];
+        vregion_free_list[cid] = (struct vregion_memobj *)vm->vregion.next;
+
+        *retvreg = &vm->vregion;
+        *retmemobj = &vm->memobj;
+        return 0;
+    }
+
+    if (vregion_buf[cid].buf == NULL) {
+        vregion_buf[cid].buf = malloc(NUM_VREGION_BUF * sizeof(struct vregion_memobj));
+        if (vregion_buf[cid].buf == NULL) {
+            return -1;
+        }
+
+        vregion_buf[cid].end = vregion_buf[cid].buf + NUM_VREGION_BUF;
+    }
+
+    *retvreg = &(vregion_buf[cid].buf)->vregion;
+    *retmemobj = &(vregion_buf[cid].buf)->memobj;
+
+    vregion_buf[cid].buf += 1;
+    if (vregion_buf[cid].buf == vregion_buf[cid].end) {
+        vregion_buf[cid].buf = NULL;
+        vregion_buf[cid].end = NULL;
+    }
+
+    return 0;
+}
+
 
 /**
  * @brief maps a region of the memory object at fixed address
@@ -468,8 +520,14 @@ plat_error_t plat_vm_map_fixed(void *addr, size_t size, plat_memobj_t memobj, of
         flags |= VREGION_FLAGS_LARGE;
     }
 
-    err = vspace_map_one_frame_one_map_fixed_attr((lvaddr_t)addr, size, plat_mobj->frame, flags,
-                                                  NULL, NULL);
+    struct vregion *vregion;
+    struct memobj_one_frame_one_map *bf_memobj;
+    if (alloc_vregion(&vregion, &bf_memobj)) {
+        return PLAT_ERR_MAP_FAILED;
+    }
+
+    err = vspace_map_one_frame_one_map_fixed_attr_no_malloc((lvaddr_t)addr, size, plat_mobj->frame,
+                                                            flags, bf_memobj, vregion);
     if (err_is_fail(err)) {
         return PLAT_ERR_MAP_FAILED;
     }
@@ -518,6 +576,8 @@ plat_error_t plat_vm_unmap(void *addr, size_t size)
 {
     errval_t err;
 
+
+    /* XXX: TODO: insert vregion region / memobj into free list */
     err = vspace_unmap(addr);
     if (err_is_fail(err)) {
         return PLAT_ERR_UNMAP_FAILED;
