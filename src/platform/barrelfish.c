@@ -88,6 +88,8 @@ plat_error_t plat_init(struct vmops_bench_cfg *cfg)
 
     LOG_PRINT("Virtual TSC frequency: %d kHz\n", eax);
     LOG_PRINT("Bench TSC frequency: %" PRIu64 "kHz\n", bench_tsc_per_us() * 1000);
+    LOG_PRINT("Bench TSC per ms: %" PRIu64 "\n", bench_tsc_per_ms());
+
 
     err = skb_client_connect();
     if (err_is_fail(err)) {
@@ -468,8 +470,8 @@ plat_error_t plat_vm_map_fixed(void *addr, size_t size, plat_memobj_t memobj, of
         flags |= VREGION_FLAGS_LARGE;
     }
 
-    err = vspace_map_one_frame_fixed_attr((lvaddr_t)addr, size, plat_mobj->frame, flags, NULL,
-                                          NULL);
+    err = vspace_map_one_frame_one_map_fixed_attr((lvaddr_t)addr, size, plat_mobj->frame, flags,
+                                                  NULL, NULL);
     if (err_is_fail(err)) {
         return PLAT_ERR_MAP_FAILED;
     }
@@ -808,9 +810,7 @@ plat_error_t plat_thread_join(plat_thread_t other)
  */
 plat_time_t plat_get_time(void)
 {
-
-    cycles_t cyc = bench_tsc();
-    return bench_tsc_to_us(cyc) * 1000;
+    return bench_tsc();
 }
 
 
@@ -823,7 +823,7 @@ plat_time_t plat_get_time(void)
  */
 plat_time_t plat_convert_time(uint32_t ms)
 {
-    return (plat_time_t)ms * 1000000UL;
+    return (plat_time_t)ms * bench_tsc_per_ms();
 }
 
 
@@ -836,7 +836,7 @@ plat_time_t plat_convert_time(uint32_t ms)
  */
 double plat_time_to_ms(plat_time_t time)
 {
-    return (double)time / 1000000.0;
+    return (double)bench_tsc_to_us(time) / 1000.0;
 }
 
 
