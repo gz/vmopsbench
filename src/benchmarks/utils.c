@@ -236,6 +236,7 @@ int vmops_utils_prepare_args(struct vmops_bench_cfg *cfg, struct vmops_bench_run
         }
     }
 
+
     /* */
     for (size_t i = 0; i < BENCHMARK_PREPOPULATE_MAPPINGS; i++) {
         void *addr;
