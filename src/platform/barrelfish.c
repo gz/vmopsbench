@@ -42,16 +42,15 @@ struct cnoderef memobj_cnoderef;
  */
 
 
-static struct thread_sem init_sem = THREAD_SEM_INITIALIZER
-;
+static struct thread_sem init_sem = THREAD_SEM_INITIALIZER;
 
 static int remote_init(void *dumm)
 {
-//    errval_t err = rsrc_join(my_rsrc_id);
-    //assert(err_is_ok(err));
+    //    errval_t err = rsrc_join(my_rsrc_id);
+    // assert(err_is_ok(err));
 
 
-//    debug_printf("remote_init %d\n", disp_get_core_id());
+    //    debug_printf("remote_init %d\n", disp_get_core_id());
     thread_sem_post(&init_sem);
     thread_detach(thread_self());
     return 0;
@@ -59,10 +58,9 @@ static int remote_init(void *dumm)
 
 static int cores_initialized = 1;
 
-static void domain_init_done(void *arg,
-                             errval_t err)
+static void domain_init_done(void *arg, errval_t err)
 {
-  //  debug_printf("domain_init_done %d\n", disp_get_core_id());
+    //  debug_printf("domain_init_done %d\n", disp_get_core_id());
     assert(err_is_ok(err));
     cores_initialized++;
 }
@@ -107,10 +105,9 @@ plat_error_t plat_init(struct vmops_bench_cfg *cfg)
     }
 
 
-
     /* Span domain to all cores */
-    for (int i = 0; i <  cfg->corelist_size; ++i) {
-        //for (int i = my_core_id + BOMP_DEFAULT_CORE_STRIDE; i < nos_threads + my_core_id; i++) {
+    for (int i = 0; i < cfg->corelist_size; ++i) {
+        // for (int i = my_core_id + BOMP_DEFAULT_CORE_STRIDE; i < nos_threads + my_core_id; i++) {
         coreid_t core = cfg->coreslist[i];
         err = domain_new_dispatcher(core, domain_init_done, NULL);
         if (err_is_fail(err)) {
@@ -120,12 +117,12 @@ plat_error_t plat_init(struct vmops_bench_cfg *cfg)
         }
     }
 
-    while (cores_initialized <  cfg->corelist_size) {
+    while (cores_initialized < cfg->corelist_size) {
         thread_yield();
     }
 
     /* Run a remote init function on remote cores */
-    for (int i = 0; i <  cfg->corelist_size; i++) {
+    for (int i = 0; i < cfg->corelist_size; i++) {
         coreid_t core = cfg->coreslist[i];
         err = domain_thread_create_on(core, remote_init, NULL, NULL);
         if (err_is_fail(err)) {
@@ -305,7 +302,8 @@ err_out_1:
  */
 
 ///< holds the information about a memory object
-struct plat_memobj {
+struct plat_memobj
+{
     struct capref frame;       ///< the frame capability
     struct frame_identity id;  ///< information about the frame identity
 };
@@ -535,7 +533,8 @@ plat_error_t plat_vm_unmap(void *addr, size_t size)
  * ================================================================================================
  */
 
-struct plat_thread {
+struct plat_thread
+{
     struct thread *thread;
     uint32_t coreid;
     plat_thread_fn_t run;
@@ -662,7 +661,8 @@ plat_error_t plat_thread_cancel(plat_thread_t thread)
 }
 
 
-typedef struct pthread_barrier {
+typedef struct pthread_barrier
+{
     unsigned max;
     volatile unsigned cycle;
     volatile unsigned counter;
