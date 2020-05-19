@@ -46,13 +46,6 @@ memsize='4096'
 BF_DURATION=3000
 BF_SAMPLES=10000
 
-# Run Barrelfish experiments
-if [ "$CI_MACHINE_TYPE" != "skylake4x" ]; then
-	echo "Not running barrelfish on this machine..."
-	exit 0
-fi
-
-
 
 if [[ "$1" = "throughput" ]]; then
 
