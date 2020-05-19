@@ -179,6 +179,7 @@ def build_barrelfish(args):
 # module /x86_64/sbin/vmops_array_mcn -p 3 -b elevate-isolated -m 40960000 -n 10000
 # for the last one: make -m =(4096 * -n)
 
+
 def run_barrelfish(args):
     if args.norun:
         return True
@@ -213,8 +214,9 @@ def run_barrelfish(args):
         qemu_instance = pexpect.spawn(
             ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': str(34), 'MEMORY': '48G'}, timeout=240+args.cores*90)
 
-
         qemu_instance.expect("Checking HUGEPAGE availability")
+        child.logfile = sys.stdout
+
         memopt = ["NO HUGEPAGES AVAILABLE", "USING HUGE MEM OPTION 1GB", "USING HUGE MEM OPTION 2MB"]
         idx = qemu_instance.expect(memopt)
         print("FOUND: %s" % memopt[idx]);
