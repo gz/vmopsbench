@@ -217,13 +217,13 @@ def run_barrelfish(args):
         qemu_instance.expect("Checking HUGEPAGE availability")
         qemu_instance.logfile = sys.stdout
 
-        memopt = ["NO HUGEPAGES AVAILABLE", "USING HUGE MEM OPTION 1GB", "USING HUGE MEM OPTION 2MB"]
-        idx = qemu_instance.expect(memopt)
-        print("FOUND: %s" % memopt[idx]);
-        if idx == 0 :
-            print("WARNING!!!!! NO HUGE PAGES FOR KVM!!!")
+        # memopt = ["NO HUGEPAGES AVAILABLE", "USING HUGE MEM OPTION 1GB", "USING HUGE MEM OPTION 2MB"]
+        # idx = qemu_instance.expect(memopt)
+        # print("FOUND: %s" % memopt[idx]);
+        # if idx == 0 :
+        #     print("WARNING!!!!! NO HUGE PAGES FOR KVM!!!")
 
-        print(qemu_instance.before.decode('utf-8'))
+        # print(qemu_instance.before.decode('utf-8'))
 
         qemu_instance.expect("KVM is -enable-kvm")
 
