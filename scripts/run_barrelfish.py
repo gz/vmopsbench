@@ -212,10 +212,10 @@ def run_barrelfish(args):
         CSV_ROW_END = "====================== END CSV ======================"
         print("Running with timeout: %d" % (60+args.cores*90))
         qemu_instance = pexpect.spawn(
-            ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': str(34), 'MEMORY': '48G'}, timeout=240+args.cores*90)
+            ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': str(args.cores + 2), 'MEMORY': str(6 + args.ncores) + 'G'}, timeout=240+args.cores*90)
 
         qemu_instance.expect("Checking HUGEPAGE availability")
-        child.logfile = sys.stdout
+        qemu_instance.logfile = sys.stdout
 
         memopt = ["NO HUGEPAGES AVAILABLE", "USING HUGE MEM OPTION 1GB", "USING HUGE MEM OPTION 2MB"]
         idx = qemu_instance.expect(memopt)
