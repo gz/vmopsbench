@@ -42,16 +42,15 @@ struct cnoderef memobj_cnoderef;
  */
 
 
-static struct thread_sem init_sem = THREAD_SEM_INITIALIZER
-;
+static struct thread_sem init_sem = THREAD_SEM_INITIALIZER;
 
 static int remote_init(void *dumm)
 {
-//    errval_t err = rsrc_join(my_rsrc_id);
-    //assert(err_is_ok(err));
+    //    errval_t err = rsrc_join(my_rsrc_id);
+    // assert(err_is_ok(err));
 
 
-//    debug_printf("remote_init %d\n", disp_get_core_id());
+    //    debug_printf("remote_init %d\n", disp_get_core_id());
     thread_sem_post(&init_sem);
     thread_detach(thread_self());
     return 0;
@@ -59,10 +58,9 @@ static int remote_init(void *dumm)
 
 static int cores_initialized = 1;
 
-static void domain_init_done(void *arg,
-                             errval_t err)
+static void domain_init_done(void *arg, errval_t err)
 {
-  //  debug_printf("domain_init_done %d\n", disp_get_core_id());
+    //  debug_printf("domain_init_done %d\n", disp_get_core_id());
     assert(err_is_ok(err));
     cores_initialized++;
 }
@@ -88,6 +86,8 @@ plat_error_t plat_init(struct vmops_bench_cfg *cfg)
 
     LOG_PRINT("Virtual TSC frequency: %d kHz\n", eax);
     LOG_PRINT("Bench TSC frequency: %" PRIu64 "kHz\n", bench_tsc_per_us() * 1000);
+    LOG_PRINT("Bench TSC per ms: %" PRIu64 "\n", bench_tsc_per_ms());
+
 
     err = skb_client_connect();
     if (err_is_fail(err)) {
@@ -105,10 +105,9 @@ plat_error_t plat_init(struct vmops_bench_cfg *cfg)
     }
 
 
-
     /* Span domain to all cores */
-    for (int i = 0; i <  cfg->corelist_size; ++i) {
-        //for (int i = my_core_id + BOMP_DEFAULT_CORE_STRIDE; i < nos_threads + my_core_id; i++) {
+    for (int i = 0; i < cfg->corelist_size; ++i) {
+        // for (int i = my_core_id + BOMP_DEFAULT_CORE_STRIDE; i < nos_threads + my_core_id; i++) {
         coreid_t core = cfg->coreslist[i];
         err = domain_new_dispatcher(core, domain_init_done, NULL);
         if (err_is_fail(err)) {
@@ -118,12 +117,12 @@ plat_error_t plat_init(struct vmops_bench_cfg *cfg)
         }
     }
 
-    while (cores_initialized <  cfg->corelist_size) {
+    while (cores_initialized < cfg->corelist_size) {
         thread_yield();
     }
 
     /* Run a remote init function on remote cores */
-    for (int i = 0; i <  cfg->corelist_size; i++) {
+    for (int i = 0; i < cfg->corelist_size; i++) {
         coreid_t core = cfg->coreslist[i];
         err = domain_thread_create_on(core, remote_init, NULL, NULL);
         if (err_is_fail(err)) {
@@ -303,7 +302,8 @@ err_out_1:
  */
 
 ///< holds the information about a memory object
-struct plat_memobj {
+struct plat_memobj
+{
     struct capref frame;       ///< the frame capability
     struct frame_identity id;  ///< information about the frame identity
 };
@@ -437,6 +437,58 @@ plat_error_t plat_vm_map(void **addr, size_t size, plat_memobj_t memobj, off_t o
     return PLAT_ERR_OK;
 }
 
+#define MAX_CORES 256
+
+#define NUM_VREGION_BUF 2000
+
+struct vregion_memobj
+{
+    struct vregion vregion;
+    struct memobj_one_frame_one_map memobj;
+};
+
+struct vregion_memobj *vregion_free_list[MAX_CORES] = {0};
+
+struct vregion_buf {
+    struct vregion_memobj *buf;
+    struct vregion_memobj *end;
+} vregion_buf[MAX_CORES] = {0};
+
+
+static int alloc_vregion(struct vregion **retvreg, struct memobj_one_frame_one_map **retmemobj)
+{
+    coreid_t cid = disp_get_core_id();
+    if (vregion_free_list[cid]) {
+        struct vregion_memobj *vm;
+        vm = vregion_free_list[cid];
+        vregion_free_list[cid] = (struct vregion_memobj *)vm->vregion.next;
+
+        *retvreg = &vm->vregion;
+        *retmemobj = &vm->memobj;
+        return 0;
+    }
+
+    if (vregion_buf[cid].buf == NULL) {
+        vregion_buf[cid].buf = malloc(NUM_VREGION_BUF * sizeof(struct vregion_memobj));
+        if (vregion_buf[cid].buf == NULL) {
+            return -1;
+        }
+
+        vregion_buf[cid].end = vregion_buf[cid].buf + NUM_VREGION_BUF;
+    }
+
+    *retvreg = &(vregion_buf[cid].buf)->vregion;
+    *retmemobj = &(vregion_buf[cid].buf)->memobj;
+
+    vregion_buf[cid].buf += 1;
+    if (vregion_buf[cid].buf == vregion_buf[cid].end) {
+        vregion_buf[cid].buf = NULL;
+        vregion_buf[cid].end = NULL;
+    }
+
+    return 0;
+}
+
 
 /**
  * @brief maps a region of the memory object at fixed address
@@ -468,8 +520,14 @@ plat_error_t plat_vm_map_fixed(void *addr, size_t size, plat_memobj_t memobj, of
         flags |= VREGION_FLAGS_LARGE;
     }
 
-    err = vspace_map_one_frame_fixed_attr((lvaddr_t)addr, size, plat_mobj->frame, flags, NULL,
-                                          NULL);
+    struct vregion *vregion;
+    struct memobj_one_frame_one_map *bf_memobj;
+    if (alloc_vregion(&vregion, &bf_memobj)) {
+        return PLAT_ERR_MAP_FAILED;
+    }
+
+    err = vspace_map_one_frame_one_map_fixed_attr_no_malloc((lvaddr_t)addr, size, plat_mobj->frame,
+                                                            flags, bf_memobj, vregion);
     if (err_is_fail(err)) {
         return PLAT_ERR_MAP_FAILED;
     }
@@ -518,6 +576,8 @@ plat_error_t plat_vm_unmap(void *addr, size_t size)
 {
     errval_t err;
 
+
+    /* XXX: TODO: insert vregion region / memobj into free list */
     err = vspace_unmap(addr);
     if (err_is_fail(err)) {
         return PLAT_ERR_UNMAP_FAILED;
@@ -533,7 +593,8 @@ plat_error_t plat_vm_unmap(void *addr, size_t size)
  * ================================================================================================
  */
 
-struct plat_thread {
+struct plat_thread
+{
     struct thread *thread;
     uint32_t coreid;
     plat_thread_fn_t run;
@@ -660,7 +721,8 @@ plat_error_t plat_thread_cancel(plat_thread_t thread)
 }
 
 
-typedef struct pthread_barrier {
+typedef struct pthread_barrier
+{
     unsigned max;
     volatile unsigned cycle;
     volatile unsigned counter;
@@ -808,9 +870,7 @@ plat_error_t plat_thread_join(plat_thread_t other)
  */
 plat_time_t plat_get_time(void)
 {
-
-    cycles_t cyc = bench_tsc();
-    return bench_tsc_to_us(cyc) * 1000;
+    return bench_tsc();
 }
 
 
@@ -823,7 +883,7 @@ plat_time_t plat_get_time(void)
  */
 plat_time_t plat_convert_time(uint32_t ms)
 {
-    return (plat_time_t)ms * 1000000UL;
+    return (plat_time_t)ms * bench_tsc_per_ms();
 }
 
 
@@ -836,7 +896,7 @@ plat_time_t plat_convert_time(uint32_t ms)
  */
 double plat_time_to_ms(plat_time_t time)
 {
-    return (double)time / 1000000.0;
+    return (double)bench_tsc_to_us(time) / 1000.0;
 }
 
 

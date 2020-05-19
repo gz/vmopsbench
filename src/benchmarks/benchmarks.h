@@ -20,7 +20,7 @@
 
 
 ///< the number of basic mappings that are being crated
-#define BENCHMARK_PREPOPULATE_MAPPINGS 1024
+#define BENCHMARK_PREPOPULATE_MAPPINGS 128
 
 struct vmops_bench_cfg
 {
