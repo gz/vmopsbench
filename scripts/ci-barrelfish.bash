@@ -50,7 +50,6 @@ BF_SAMPLES=10000
 if [[ "$1" = "throughput" ]]; then
 
 	for benchmark in $benchmarks; do
-		echo $benchmark
 
 		CSVFILE_ALL=vmops_barrelfish_${benchmark}_threads_all_results.csv
 		echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $CSVFILE_ALL
@@ -62,7 +61,6 @@ if [[ "$1" = "throughput" ]]; then
 			tail -n +2 $CSVFILE >> $CSVFILE_ALL
 		fi;
 		for corecount in 2 4 8 16 32; do
-		    cores=`seq 0 1 $corecount`
 			echo "$benchmark with $corecount cores"
 
 			LOGFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_logfile.log
@@ -81,8 +79,6 @@ if [[ "$1" = "throughput" ]]; then
 elif [[ "$1" = "latency" ]]; then
 
 	for benchmark in $benchmarks; do
-		echo $benchmark
-
 
 		THPT_CSVFILE_ALL=vmops_barrelfish_${benchmark}_threads_all_latency_results.csv
 		LATENCY_CSVFILE_ALL=vmops_barrelfish_${benchmark}_threads_all_throughput_results.csv
@@ -162,6 +158,10 @@ mv *.csv.gz ${DEPLOY_DIR}
 cd gh-pages
 git add .
 git commit -a -m "Added benchmark results for $GIT_REV_CURRENT."
+
+#doing a git fetch/rebase here in case there has been a push in mean time
+git fetch
+git rebase
 git push origin gh-pages
 cd ..
 rm -rf gh-pages

@@ -125,6 +125,10 @@ mv *.png ${DEPLOY_DIR}
 cd gh-pages
 git add .
 git commit -a -m "Added benchmark results for $GIT_REV_CURRENT."
+
+#refetch in case there is an update
+git fetch
+git rebase
 git push origin gh-pages
 cd ..
 rm -rf gh-pages
