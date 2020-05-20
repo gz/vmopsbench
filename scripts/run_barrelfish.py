@@ -230,7 +230,7 @@ def run_barrelfish(args):
         qemu_instance = pexpect.spawn(
             ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': str(args.cores + 1), 'MEMORY': '128G'}, timeout=timeout, encoding='utf-8')
         
-        if safelog
+        if safelog :
             qemu_instance.logfile = sys.stdout
 
 
