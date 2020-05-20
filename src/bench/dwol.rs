@@ -46,7 +46,7 @@ impl Bench for DWOL {
         }
     }
 
-    fn run(&self, b: Arc<Barrier>, duration: u64, core: u64) -> Vec<usize> {
+    fn run(&self, b: Arc<Barrier>, duration: u64, core: u64, _write_ratio: usize) -> Vec<usize> {
         let mut secs = duration as usize;
         let mut iops = Vec::with_capacity(secs);
 

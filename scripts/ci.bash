@@ -8,7 +8,7 @@ sudo umount -f /mnt || true
 # Mount tmpfs
 sudo mount tmpfs /mnt -t tmpfs
 
-benchmark='drbl drbh dwol dwom mwrl mwrm dwal'
+benchmark='drbl drbh dwol dwom mwrl mwrm dwal mix'
 CSVFILE=fsops_benchmark.csv
 
 RUST_TEST_THREADS=1 cargo bench --bench fxmark -- --duration 10 --type $benchmark

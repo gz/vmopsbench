@@ -6,6 +6,7 @@ pub mod drbl;
 pub mod dwal;
 pub mod dwol;
 pub mod dwom;
+pub mod mix;
 pub mod mwrl;
 pub mod mwrm;
 

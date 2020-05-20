@@ -11,11 +11,13 @@ use utils::topology::ThreadMapping;
 use utils::topology::*;
 
 mod bench;
-use bench::{drbh::DRBH, drbl::DRBL, dwal::DWAL, dwol::DWOL, dwom::DWOM, mwrl::MWRL, mwrm::MWRM};
+use bench::{
+    drbh::DRBH, drbl::DRBL, dwal::DWAL, dwol::DWOL, dwom::DWOM, mix::MIX, mwrl::MWRL, mwrm::MWRM,
+};
 
 pub trait Bench {
     fn init(&self, cores: Vec<u64>);
-    fn run(&self, b: Arc<Barrier>, duration: u64, core: u64) -> Vec<usize>;
+    fn run(&self, b: Arc<Barrier>, duration: u64, core: u64, write_ratio: usize) -> Vec<usize>;
 }
 
 struct BenchMark<T>
@@ -106,6 +108,7 @@ where
         name: &str,
         duration: u64,
         file_name: &str,
+        write_ratio: usize,
         ts: usize,
         result: &HashMap<u64, Vec<usize>>,
     ) {
@@ -118,7 +121,7 @@ where
             .expect("Can't open file");
         if write_headers {
             let row =
-                "git_rev,thread_id,benchmark,ncores,memsize,duration_total,duration,operations\n";
+                "git_rev,thread_id,benchmark,ncores,write_ratio,duration_total,duration,operations\n";
             let r = csv_file.write(row.as_bytes());
             assert!(r.is_ok());
         }
@@ -134,7 +137,7 @@ where
                 let r = csv_file.write(
                     format!(
                         "{},{:?},{},{},{},{},{}",
-                        *core, name, ts, 4096, duration, time, ops
+                        *core, name, ts, write_ratio, duration, time, ops
                     )
                     .as_bytes(),
                 );
@@ -147,7 +150,7 @@ where
     }
 
     /// Start the benchmark
-    pub fn start(&mut self, duration: u64, name: &str, file_name: &str) {
+    pub fn start(&mut self, duration: u64, name: &str, file_name: &str, write_ratio: usize) {
         let topology = MachineTopology::new();
         utils::disable_dvfs();
 
@@ -169,7 +172,7 @@ where
 
                     children.push(thread::spawn(move || {
                         utils::pin_thread(core);
-                        (core, bench.run(b, duration, core))
+                        (core, bench.run(b, duration, core, write_ratio))
                     }));
                 }
 
@@ -178,7 +181,7 @@ where
                     let (core, iops) = child.join().unwrap();
                     result.insert(core, iops);
                 }
-                self.report_bench(name, duration, file_name, *ts, &result);
+                self.report_bench(name, duration, file_name, *ts, write_ratio, &result);
             }
         }
     }
@@ -207,7 +210,9 @@ fn main() {
                 .multiple(true)
                 .takes_value(true)
                 .required(true)
-                .possible_values(&["drbl", "drbh", "dwol", "dwom", "dwal", "mwrl", "mwrm"])
+                .possible_values(&[
+                    "drbl", "drbh", "dwol", "dwom", "dwal", "mwrl", "mwrm", "mix",
+                ])
                 .help("Benchmark to run."),
         )
         .get_matches_from(args);
@@ -221,13 +226,14 @@ fn main() {
     let file_name = "fsops_benchmark.csv";
     let _ret = std::fs::remove_file(file_name);
     let thread_mapping = ThreadMapping::Sequential;
+    let default_write_ratio = 0;
 
     // Read a block in a private file
     if versions.contains(&"drbl") {
         BenchMark::<DRBL>::new()
             .thread_defaults()
             .thread_mapping(thread_mapping)
-            .start(duration, "drbl", file_name);
+            .start(duration, "drbl", file_name, default_write_ratio);
     }
 
     // Read a shared block in a shared file
@@ -235,7 +241,7 @@ fn main() {
         BenchMark::<DRBH>::new()
             .thread_defaults()
             .thread_mapping(thread_mapping)
-            .start(duration, "drbh", file_name);
+            .start(duration, "drbh", file_name, default_write_ratio);
     }
 
     // Overwrite a block in a private file
@@ -243,7 +249,7 @@ fn main() {
         BenchMark::<DWOL>::new()
             .thread_defaults()
             .thread_mapping(thread_mapping)
-            .start(duration, "dwol", file_name);
+            .start(duration, "dwol", file_name, default_write_ratio);
     }
 
     // Overwrite a private block in a shared file
@@ -251,7 +257,7 @@ fn main() {
         BenchMark::<DWOM>::new()
             .thread_defaults()
             .thread_mapping(thread_mapping)
-            .start(duration, "dwom", file_name);
+            .start(duration, "dwom", file_name, default_write_ratio);
     }
 
     // Append a block in a private file
@@ -259,7 +265,7 @@ fn main() {
         BenchMark::<DWAL>::new()
             .thread_defaults()
             .thread_mapping(thread_mapping)
-            .start(duration, "dwal", file_name);
+            .start(duration, "dwal", file_name, default_write_ratio);
     }
 
     // Rename a private file in a private directory
@@ -267,7 +273,7 @@ fn main() {
         BenchMark::<MWRL>::new()
             .thread_defaults()
             .thread_mapping(thread_mapping)
-            .start(duration, "mwrl", file_name);
+            .start(duration, "mwrl", file_name, default_write_ratio);
     }
 
     // Move a private file to a shared directory
@@ -275,6 +281,15 @@ fn main() {
         BenchMark::<MWRM>::new()
             .thread_defaults()
             .thread_mapping(thread_mapping)
-            .start(duration, "mwrm", file_name);
+            .start(duration, "mwrm", file_name, default_write_ratio);
+    }
+
+    if versions.contains(&"mix") {
+        for write_ratio in vec![1, 5, 10, 20, 40, 60, 80, 100] {
+            BenchMark::<MIX>::new()
+                .thread_defaults()
+                .thread_mapping(thread_mapping)
+                .start(duration, "mix", file_name, write_ratio);
+        }
     }
 }
