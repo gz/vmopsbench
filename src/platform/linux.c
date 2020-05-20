@@ -425,7 +425,8 @@ static void *plat_thread_run_fn(void *st)
 {
     struct plat_thread *thr = (struct plat_thread *)st;
 
-    CPU_SET(thr->thread, &thr->cpuset);
+    CPU_ZERO(&thr->cpuset);
+    CPU_SET(thr->coreid, &thr->cpuset);
     pthread_setaffinity_np(pthread_self(), sizeof(thr->cpuset), &thr->cpuset);
 
     thr->run(thr->st);
@@ -453,8 +454,7 @@ plat_thread_t plat_thread_start(plat_thread_fn_t run, struct vmops_bench_run_arg
     thread->coreid = coreid;
     thread->run = run;
     thread->st = st;
-    CPU_ZERO(&thread->cpuset);
-
+    
     if (pthread_create(&thread->thread, NULL, plat_thread_run_fn, thread)) {
         free(thread);
         return 0;
