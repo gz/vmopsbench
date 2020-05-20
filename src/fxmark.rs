@@ -108,8 +108,8 @@ where
         name: &str,
         duration: u64,
         file_name: &str,
-        write_ratio: usize,
         ts: usize,
+        write_ratio: usize,
         result: &HashMap<u64, Vec<usize>>,
     ) {
         // Append parsed results to a CSV file

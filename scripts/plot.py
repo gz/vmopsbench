@@ -52,23 +52,26 @@ def plot_scalability(filename, df):
         row.benchmark.split(",")[0]), axis=1)
 
     for name in df.benchmark.unique():
-        benchmark = df.loc[df['benchmark'] == name]
+        for writeratio in df.write_ratio.unique():
+            benchmark = df.loc[(df['benchmark'] == name) & (df['write_ratio'] == writeratio)]
+            if len(benchmark) == 0:
+                continue
 
-        benchmark = benchmark.groupby(['ncores', 'benchmark']).agg(
-            {'operations': 'sum', 'ncores': 'max', 'duration': 'max'})
+            benchmark = benchmark.groupby(['write_ratio','benchmark', 'ncores']).agg(
+                {'operations': 'sum', 'ncores': 'max', 'duration': 'max'})
 
-        benchmark['tps'] = (benchmark['operations'] / benchmark['duration']).fillna(0.0).astype(int)
-        cores = benchmark.agg({'ncores' : 'max'}).fillna(0.0).astype(int)
+            benchmark['tps'] = (benchmark['operations'] / benchmark['duration']).fillna(0.0).astype(int)
+            cores = benchmark.agg({'ncores' : 'max'}).fillna(0.0).astype(int)
 
-        p = ggplot(data=benchmark, mapping=aes(x='ncores', y='tps', ymin=0, xmax=cores)) + \
-            theme_my538(base_size=13) + \
-            labs(y="Throughput [Kelems/s]", x="# Threads") + \
-            theme(legend_position='top', legend_title="drbh") + \
-            scale_y_continuous(labels=lambda lst: ["{:,.0f}".format(x / 1000) for x in lst]) + \
-            geom_point() + \
-            geom_line()
-        p.save("{}-throughput.png".format(name), dpi=300)
-        p.save("{}-throughput.pdf".format(name), dpi=300)
+            p = ggplot(data=benchmark, mapping=aes(x='ncores', y='tps', ymin=0, xmax=cores)) + \
+                theme_my538(base_size=13) + \
+                labs(y="Throughput [Melems/s]", x="# Threads") + \
+                theme(legend_position='top', legend_title="drbh") + \
+                scale_y_continuous(labels=lambda lst: ["{:,.2f}".format(x / 1_000_000) for x in lst]) + \
+                geom_point() + \
+                geom_line()
+            p.save("{}-{}-throughput.png".format(name, writeratio, dpi=300))
+            p.save("{}-{}-throughput.pdf".format(name, writeratio, dpi=300))
 
 
 def parse_results(path):
