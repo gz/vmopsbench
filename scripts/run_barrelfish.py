@@ -189,11 +189,11 @@ def run_barrelfish(args):
     log("Running Barrelfish {}".format(args.cores))
 
     with open(MENU_LST_PATH, 'w') as menu_lst_file:
-        timeout_factor = 0
+        timeout_factor = 60
         safelog = True
         if args.nops != -1:
             bench_arg = "-o {} -s {} -r 0".format(args.nops, args.nops)
-            timeout_factor = args.cores * 60
+            timeout_factor = 180
             safelog = False
 
         elif args.time != -1:
@@ -219,12 +219,8 @@ def run_barrelfish(args):
         CSV_ROW_END = "====================== END CSV ======================"
         
 
-        timeout = 120
-        if args.cores > 64 :
-            timeout = timeout + 120
-        if args.cores > 16 :
-            timeout = timeout + 120
-        timeout = timeout + timeout_factor
+
+        timeout = args.cores * (1 + timeout_factor)
 
         print("Running with timeout: %d" % (timeout))
         qemu_instance = pexpect.spawn(
