@@ -60,7 +60,7 @@ elif [[ "$1" = "latency" ]]; then
 
 		echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $THPT_CSVFILE_ALL
 		echo "benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,threadid,elapsed,couter,latency" | tee $LATENCY_CSVFILE_ALL
-		for cores in 1 `seq 0 8 $MAX_CORES`; do
+		for cores in 1 `seq 8 8 $MAX_CORES`; do
 
 	   	    LOGFILE=vmops_linux_${benchmark}_threads_${cores}_latency_logfile.log
 			THPT_CSVFILE=vmops_linux_${benchmark}_threads_${cores}_throughput_results.csv

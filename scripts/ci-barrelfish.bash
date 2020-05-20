@@ -14,23 +14,23 @@ sudo sysctl -w vm.max_map_count=50000000
 NR_2M_PAGES=25088
 NR_1G_Pages=49
 
-if [ -d /sys/kernel/mm/hugepages/hugepages-1048576kB ]; then
-	echo "Setting $NR_1G_Pages 1GB Pages"
-	echo $NR_1G_Pages | sudo tee /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
-	NRHUGEPAGES=$(cat /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages)
-	if [[ $NRHUGEPAGES == 0 ]]; then
-		echo "Setting $NR_2M_PAGES 2MB Pages"
-		echo $NR_2M_PAGES | sudo tee /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
-	fi
-elif [ -d /sys/kernel/mm/hugepages/hugepages-2048kB ]; then
-	echo "Setting $NR_2M_PAGES 2MB Pages"
-	echo $NR_2M_PAGES | sudo tee /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
-else
-	echo "NO HUGEPAGES AVAILABLE"
-fi
+# if [ -d /sys/kernel/mm/hugepages/hugepages-1048576kB ]; then
+# 	echo "Setting $NR_1G_Pages 1GB Pages"
+# 	echo $NR_1G_Pages | sudo tee /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
+# 	NRHUGEPAGES=$(cat /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages)
+# 	if [[ $NRHUGEPAGES == 0 ]]; then
+# 		echo "Setting $NR_2M_PAGES 2MB Pages"
+# 		echo $NR_2M_PAGES | sudo tee /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+# 	fi
+# elif [ -d /sys/kernel/mm/hugepages/hugepages-2048kB ]; then
+# 	echo "Setting $NR_2M_PAGES 2MB Pages"
+# 	echo $NR_2M_PAGES | sudo tee /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+# else
+# 	echo "NO HUGEPAGES AVAILABLE"
+# fi
 
-cat /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
-cat /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+# cat /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
+# cat /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
 
 
 SAMPLES=100000
@@ -60,7 +60,7 @@ if [[ "$1" = "throughput" ]]; then
 		if [ -f $CSVFILE ]; then 
 			tail -n +2 $CSVFILE >> $CSVFILE_ALL
 		fi;
-		for corecount in 2 4 8 16 32; do
+		for corecount in 1 `seq 8 8 $MAX_CORES`; do
 			echo "$benchmark with $corecount cores"
 
 			LOGFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_logfile.log
@@ -98,7 +98,7 @@ elif [[ "$1" = "latency" ]]; then
 			tail -n +2 $LATENCY_CSVFILE >> $LATENCY_CSVFILE_ALL
 		fi
 
-		for corecount in 2 4 8 16 32; do
+		for corecount in 1 `seq 8 8 $MAX_CORES`; do
 
 			LOGFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_latency_logfile.log
 			THPT_CSVFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_throughput_results.csv
@@ -168,8 +168,8 @@ rm -rf gh-pages
 git clean -f
 
 
-if [ -d /sys/kernel/mm/hugepages/hugepages-1048576kB ]; then
-	echo 0 | sudo tee /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
-elif [ -d /sys/kernel/mm/hugepages/hugepages-2048kB ]; then
-	echo 0 | sudo tee /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
-fi
+# if [ -d /sys/kernel/mm/hugepages/hugepages-1048576kB ]; then
+# 	echo 0 | sudo tee /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
+# elif [ -d /sys/kernel/mm/hugepages/hugepages-2048kB ]; then
+# 	echo 0 | sudo tee /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+# fi

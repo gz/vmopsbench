@@ -6,9 +6,11 @@ import sys
 import pathlib
 import shutil
 import pexpect
+import multiprocessing
 
 from plumbum import colors, local
 from plumbum.cmd import git, apt_get, sudo, mkdir, bash, make
+
 
 #
 # run.py script settings
@@ -149,7 +151,7 @@ def deploy_vmops(args):
 
 
 def build_barrelfish(args):
-    log("Building Barrelfish")
+    log("Building Barrelfish with %d procs" % multiprocessing.cpu_count())
     with local.cwd(BARRELFISH_DIR):
         mkdir['-p', 'build']()
         with local.cwd(BARRELIFH_BUILD):
@@ -162,12 +164,12 @@ def build_barrelfish(args):
                     print(" ".join(hake_cmd))
                 bash(*hake_cmd)
 
-            make_args = ['-j', '6', 'X86_64_Basic']
+            make_args = ['-j', str(multiprocessing.cpu_count()), 'X86_64_Basic']
             if args.verbose:
                 print("make " + " ".join(make_args))
             make(*make_args)
 
-            make_args = ['-j', '6', 'x86_64/sbin/vmops_array_mcn']
+            make_args = ['-j', str(multiprocessing.cpu_count()), 'x86_64/sbin/vmops_array_mcn']
             if args.verbose:
                 print("make " + " ".join(make_args))
             make(*make_args)
@@ -210,9 +212,17 @@ def run_barrelfish(args):
             print(" ".join(cmd_args))
         CSV_ROW_BEGIN = "===================== BEGIN CSV ====================="
         CSV_ROW_END = "====================== END CSV ======================"
-        print("Running with timeout: %d" % (60+args.cores*30))
+        
+
+        timeout = 120
+        if args.cores > 64 :
+            timeout = timeout + 120
+        if args.cores > 16 :
+            timeout = timeout + 120
+
+        print("Running with timeout: %d" % (timeout))
         qemu_instance = pexpect.spawn(
-            ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': str(args.cores + 2), 'MEMORY': str(6 + args.cores) + 'G'}, timeout=60+args.cores*30, encoding='utf-8')
+            ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': str(args.cores + 1), 'MEMORY': '128G'}, timeout=timeout, encoding='utf-8')
         qemu_instance.logfile = sys.stdout
 
 
