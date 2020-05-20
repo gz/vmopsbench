@@ -189,8 +189,13 @@ def run_barrelfish(args):
     log("Running Barrelfish {}".format(args.cores))
 
     with open(MENU_LST_PATH, 'w') as menu_lst_file:
+        timeout_factor = 0
+        safelog = True
         if args.nops != -1:
             bench_arg = "-o {} -s {} -r 0".format(args.nops, args.nops)
+            timeout_factor = args.cores * 60
+            safelog = False
+
         elif args.time != -1:
             bench_arg = "-t {}".format(args.time)
         else:
@@ -219,11 +224,14 @@ def run_barrelfish(args):
             timeout = timeout + 120
         if args.cores > 16 :
             timeout = timeout + 120
+        timeout = timeout + timeout_factor
 
         print("Running with timeout: %d" % (timeout))
         qemu_instance = pexpect.spawn(
             ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': str(args.cores + 1), 'MEMORY': '128G'}, timeout=timeout, encoding='utf-8')
-        qemu_instance.logfile = sys.stdout
+        
+        if safelog
+            qemu_instance.logfile = sys.stdout
 
 
         qemu_instance.expect("Checking HUGEPAGE availability")
