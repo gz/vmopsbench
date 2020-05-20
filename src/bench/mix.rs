@@ -1,7 +1,6 @@
 use super::PAGE_SIZE;
 use crate::Bench;
 use libc::*;
-use std::cell::RefCell;
 use std::sync::{Arc, Barrier};
 use std::time::{Duration, Instant};
 use x86::random::rdrand16;
@@ -11,30 +10,22 @@ pub struct MIX {
     path: &'static str,
     page: Vec<u8>,
     file_size: i64,
-    cores: RefCell<Vec<u64>>,
 }
 
 impl Default for MIX {
     fn default() -> MIX {
         let page = vec![0xb; PAGE_SIZE];
-        let cores = RefCell::new(Vec::with_capacity(512));
         MIX {
             // It doesn't work if trailing \0 isn't there in the filename.
             path: "/mnt/file.txt\0",
             page,
-            file_size: 128 * 1024 * 1024,
-            cores,
+            file_size: 256 * 1024 * 1024,
         }
     }
 }
 
 impl Bench for MIX {
-    fn init(&self, cores: Vec<u64>) {
-        self.cores.borrow_mut().clear();
-        for core in cores.iter() {
-            self.cores.borrow_mut().push(*core);
-        }
-        self.cores.borrow_mut().sort();
+    fn init(&self, _cores: Vec<u64>) {
         unsafe {
             let _a = remove(self.path.as_ptr() as *const i8);
             let fd = open(self.path.as_ptr() as *const i8, O_CREAT | O_RDWR, S_IRWXU);
@@ -61,29 +52,16 @@ impl Bench for MIX {
         }
     }
 
-    fn run(&self, b: Arc<Barrier>, duration: u64, core: u64, write_ratio: usize) -> Vec<usize> {
+    fn run(&self, b: Arc<Barrier>, duration: u64, _core: u64, write_ratio: usize) -> Vec<usize> {
         let mut secs = duration as usize;
         let mut iops = Vec::with_capacity(secs);
-        let core = match self.cores.borrow().binary_search(&core) {
-            Ok(core) => core,
-            Err(_) => unreachable!(),
-        };
 
         unsafe {
             let fd = open(self.path.as_ptr() as *const i8, O_CREAT | O_RDWR, S_IRWXU);
             if fd == -1 {
                 panic!("Unable to open a file");
             }
-            let total_cores = self.cores.borrow().len() as i64;
             let total_pages = self.file_size / PAGE_SIZE as i64;
-            let pages_per_core = total_pages / total_cores;
-            let lower;
-            if core == 0 {
-                lower = 0;
-            } else {
-                lower = (core - 1) as i64 * pages_per_core;
-            }
-            let _higher = core as i64 * pages_per_core;
             let page: &mut [i8; PAGE_SIZE as usize] = &mut [0; PAGE_SIZE as usize];
 
             let mut random_num: u16 = 0;
@@ -96,7 +74,7 @@ impl Bench for MIX {
                 while Instant::now() < end_experiment {
                     for _i in 0..128 {
                         rdrand16(&mut random_num);
-                        let rand = lower + (random_num as i64 % pages_per_core);
+                        let rand = random_num as i64 % total_pages;
                         let offset = rand * PAGE_SIZE as i64;
 
                         if random_num as usize % 100 < write_ratio {
