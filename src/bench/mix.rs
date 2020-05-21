@@ -19,7 +19,7 @@ impl Default for MIX {
             // It doesn't work if trailing \0 isn't there in the filename.
             path: "/mnt/file.txt\0",
             page,
-            file_size: 512 * 1024 * 1024,
+            file_size: 256 * 1024 * 1024,
         }
     }
 }
