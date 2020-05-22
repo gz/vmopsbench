@@ -10,7 +10,7 @@ pub mod mix;
 pub mod mwrl;
 pub mod mwrm;
 
-const PAGE_SIZE: usize = 128;
+const PAGE_SIZE: usize = 4096;
 
 pub fn calculate_throughput(ops: u64, time: Duration) -> usize {
     let nano_duration = time.as_nanos();
