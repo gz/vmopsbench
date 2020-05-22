@@ -285,7 +285,7 @@ fn main() {
     }
 
     if versions.contains(&"mix") {
-        for write_ratio in vec![1, 5, 10, 20, 40, 60, 80, 100] {
+        for write_ratio in vec![0, 1, 5, 10, 20, 40, 60, 80, 100] {
             BenchMark::<MIX>::new()
                 .thread_defaults()
                 .thread_mapping(thread_mapping)
