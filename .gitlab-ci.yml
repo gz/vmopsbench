@@ -12,29 +12,27 @@ build:
   script:
     - make
 
+# benchmark:skylake2x:barrelfishthroughput:
+#   stage: benchmark
+#   script:
+#     - bash scripts/ci-barrelfish.bash throughput
+#   dependencies:
+#     - build
+#   variables:
+#     GIT_STRATEGY: fetch
+#   tags:
+#     - skylake2x
 
-benchmark:skylake2x:barrelfishthroughput:
-  stage: benchmark
-  script:
-    - bash scripts/ci-barrelfish.bash throughput
-  dependencies:
-    - build
-  variables:
-    GIT_STRATEGY: fetch
-  tags:
-    - skylake2x
-
-
-benchmark:skylake2x:barrelfishlatency:
-  stage: benchmark
-  script:
-    - bash scripts/ci-barrelfish.bash latency
-  dependencies:
-    - build
-  variables:
-    GIT_STRATEGY: fetch
-  tags:
-    - skylake2x
+# benchmark:skylake2x:barrelfishlatency:
+#   stage: benchmark
+#   script:
+#     - bash scripts/ci-barrelfish.bash latency
+#   dependencies:
+#     - build
+#   variables:
+#     GIT_STRATEGY: fetch
+#   tags:
+#     - skylake2x
 
 benchmark:skylake2x:linuxlatency:
   stage: benchmark
@@ -59,30 +57,27 @@ benchmark:skylake2x:linuxthroughput:
     - skylake2x
 
 
-benchmark:skylake4x:barrelfishthroughput:
-  stage: benchmark
-  script:
-    - bash scripts/ci-barrelfish.bash throughput
-  dependencies:
-    - build
-  variables:
-    GIT_STRATEGY: fetch
-  tags:
-    - skylake4x
+# benchmark:skylake4x:barrelfishthroughput:
+#   stage: benchmark
+#   script:
+#     - bash scripts/ci-barrelfish.bash throughput
+#   dependencies:
+#     - build
+#   variables:
+#     GIT_STRATEGY: fetch
+#   tags:
+#     - skylake4x
 
-
-benchmark:skylake4x:barrelfishlatency:
-  stage: benchmark
-  script:
-    - bash scripts/ci-barrelfish.bash latency
-  dependencies:
-    - build
-  variables:
-    GIT_STRATEGY: fetch
-  tags:
-    - skylake4x
-
-
+# benchmark:skylake4x:barrelfishlatency:
+#   stage: benchmark
+#   script:
+#     - bash scripts/ci-barrelfish.bash latency
+#   dependencies:
+#     - build
+#   variables:
+#     GIT_STRATEGY: fetch
+#   tags:
+#     - skylake4x
 
 benchmark:skylake4x:linuxlatency:
   stage: benchmark
@@ -94,7 +89,6 @@ benchmark:skylake4x:linuxlatency:
     GIT_STRATEGY: fetch
   tags:
     - skylake4x
-
 
 benchmark:skylake4x:linuxthroughput:
   stage: benchmark

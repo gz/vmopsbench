@@ -91,9 +91,6 @@ MENU_LST_PATH = BARRELFISH_DIR / 'build' / \
 RESULTS_PATH = SCRIPT_PATH / '..'
 
 
-
-
-
 def get_barreflish(args):
     if not BARRELFISH_DIR.exists():
         log("Checking out Barrelfish")
@@ -164,12 +161,14 @@ def build_barrelfish(args):
                     print(" ".join(hake_cmd))
                 bash(*hake_cmd)
 
-            make_args = ['-j', str(multiprocessing.cpu_count()), 'X86_64_Basic']
+            make_args = [
+                '-j', str(multiprocessing.cpu_count()), 'X86_64_Basic']
             if args.verbose:
                 print("make " + " ".join(make_args))
             make(*make_args)
 
-            make_args = ['-j', str(multiprocessing.cpu_count()), 'x86_64/sbin/vmops_array_mcn']
+            make_args = ['-j', str(multiprocessing.cpu_count()),
+                         'x86_64/sbin/vmops_array_mcn']
             if args.verbose:
                 print("make " + " ".join(make_args))
             make(*make_args)
@@ -201,7 +200,7 @@ def run_barrelfish(args):
         else:
             bench_arg = "-t 4000"
         mem = "4096"
-        if args.benchmark.startswith("elevate") :
+        if args.benchmark.startswith("elevate"):
             mem = "40960000"
 
         my_menu = MENU_LST.format(args.cores, bench_arg, args.benchmark, mem)
@@ -217,21 +216,17 @@ def run_barrelfish(args):
             print(" ".join(cmd_args))
         CSV_ROW_BEGIN = "===================== BEGIN CSV ====================="
         CSV_ROW_END = "====================== END CSV ======================"
-        
-
 
         timeout = args.cores * (1 + timeout_factor)
 
         print("Running with timeout: %d" % (timeout))
         qemu_instance = pexpect.spawn(
             ' '.join(cmd_args), cwd=BARRELIFH_BUILD, env={'SMP': str(args.cores + 1), 'MEMORY': '128G'}, timeout=timeout, encoding='utf-8')
-        
-        if safelog :
+
+        if safelog:
             qemu_instance.logfile = sys.stdout
 
-
         qemu_instance.expect("Checking HUGEPAGE availability")
-
 
         # memopt = ["NO HUGEPAGES AVAILABLE", "USING HUGE MEM OPTION 1GB", "USING HUGE MEM OPTION 2MB"]
         # idx = qemu_instance.expect(memopt)
@@ -251,17 +246,18 @@ def run_barrelfish(args):
             print(results.strip())
             results_file.write(results.strip() + "\n")
 
-        if args.nops != -1 :
-            qemu_instance.expect("====================== BEGIN STATS ======================")
-            qemu_instance.expect("====================== END STATS ======================")
+        if args.nops != -1:
+            qemu_instance.expect(
+                "====================== BEGIN STATS ======================")
+            qemu_instance.expect(
+                "====================== END STATS ======================")
             results = qemu_instance.before
 
             with open(RESULTS_PATH / args.csvlat, 'a') as results_file:
-                #print(results.strip())
+                # print(results.strip())
                 results_file.write(results.strip() + "\n")
 
         qemu_instance.terminate(force=True)
-
 
 
 if __name__ == '__main__':

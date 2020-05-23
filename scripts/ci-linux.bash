@@ -1,4 +1,10 @@
 #!/bin/bash
+#
+# Usage: 
+# - CI_MACHINE_TYPE=skylake2x bash scripts/ci-linux.bash latency
+# - CI_MACHINE_TYPE=skylake2x bash scripts/ci-linux.bash throughput
+#
+
 set -ex
 
 pip3 install -r scripts/requirements.txt
@@ -55,11 +61,9 @@ elif [[ "$1" = "latency" ]]; then
 		    memsz='4096'
 		fi
 
-		LATENCY_CSVFILE_ALL=vmops_linux_${benchmark}_threads_all_latency_results.csv
 		THPT_CSVFILE_ALL=vmops_linux_${benchmark}_threads_all_throughput_results.csv
 
 		echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $THPT_CSVFILE_ALL
-		echo "benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,threadid,elapsed,couter,latency" | tee $LATENCY_CSVFILE_ALL
 		for cores in 1 `seq 8 8 $MAX_CORES`; do
 
 	   	    LOGFILE=vmops_linux_${benchmark}_threads_${cores}_latency_logfile.log
@@ -78,22 +82,15 @@ elif [[ "$1" = "latency" ]]; then
 		    cat /proc/interrupts | grep TLB | tee -a $LOGFILE;
 		    (./bin/vmops -z $LATENCY_CSVFILE -p $cores -n $NUM_SAMPES -s $NUM_SAMPES -r 0 -m $memsz -b ${benchmark} ${numa} ${huge} | tee $THPT_CSVFILE) 3>&1 1>&2 2>&3 | tee -a $LOGFILE
 
-		    tail -n +2 $THPT_CSVFILE >> $THPT_CSVFILE_ALL
-		    tail -n +2 $LATENCY_CSVFILE >> $LATENCY_CSVFILE_ALL
+			python3 scripts/histogram.py $LATENCY_CSVFILE Linux
+			rm $LATENCY_CSVFILE
 		done
-
-		python3 scripts/plot.py $THPT_CSVFILE_ALL
-		python3 scripts/plot.py $LATENCY_CSVFILE_ALL
-
-		rm -rf $LATENCY_CSVFILE_ALL
 	done
 
 else
 	echo "ERROR: UNKNOWN ARGUMENT $1"
 	exit 1
 fi
-
-
 
 
 rm -rf gh-pages

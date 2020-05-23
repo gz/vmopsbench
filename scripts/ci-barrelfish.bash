@@ -81,10 +81,7 @@ elif [[ "$1" = "latency" ]]; then
 	for benchmark in $benchmarks; do
 
 		THPT_CSVFILE_ALL=vmops_barrelfish_${benchmark}_threads_all_latency_results.csv
-		LATENCY_CSVFILE_ALL=vmops_barrelfish_${benchmark}_threads_all_throughput_results.csv
-
 		echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $THPT_CSVFILE_ALL
-		echo "benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,threadid,elapsed,couter,latency" | tee $LATENCY_CSVFILE_ALL
 
 		LOGFILE=vmops_barrelfish_${benchmark}_threads_1_latency_logfile.log
 		THPT_CSVFILE=vmops_barrelfish_${benchmark}_threads_1_throughput_results.csv
@@ -93,9 +90,6 @@ elif [[ "$1" = "latency" ]]; then
 		(python3 scripts/run_barrelfish.py --csvthpt "$THPT_CSVFILE" --csvlat "$LATENCY_CSVFILE" --nops $BF_SAMPLES --benchmark $benchmark --cores 1 --time $BF_DURATION --hake || true) | tee $LOGFILE
 		if [ -f $THPT_CSVFILE ]; then
 			tail -n +2 $THPT_CSVFILE >> $THPT_CSVFILE_ALL
-		fi
-		if [ -f $LATENCY_CSVFILE ]; then
-			tail -n +2 $LATENCY_CSVFILE >> $LATENCY_CSVFILE_ALL
 		fi
 
 		for corecount in 1 `seq 8 8 $MAX_CORES`; do
@@ -116,17 +110,12 @@ elif [[ "$1" = "latency" ]]; then
 		    fi
 
 		    if [ -f $LATENCY_CSVFILE ]; then
-			    tail -n +2 $LATENCY_CSVFILE >> $LATENCY_CSVFILE_ALL
+				python3 scripts/histogram.py $LATENCY_CSVFILE Barrelfish
 		    else
 		    	echo "WARNING: $LATENCY_CSVFILE does not exists!!"
 		    fi
-
-
 		done
-
-		rm -rf $LATENCY_CSVFILE_ALL
 	done
-
 else
 	echo "ERROR: UNKNOWN ARGUMENT $1"
 	exit 1
@@ -144,16 +133,12 @@ DEPLOY_DIR="gh-pages/vmops/${CI_MACHINE_TYPE}/${GIT_REV_CURRENT}/"
 mkdir -p ${DEPLOY_DIR}
 cp gh-pages/vmops/index.markdown ${DEPLOY_DIR}
 
-
 ls -lh
 
 gzip *.csv
 gzip *.log
 mv *.log.gz ${DEPLOY_DIR}
 mv *.csv.gz ${DEPLOY_DIR}
-#mv *.pdf ${DEPLOY_DIR} 
-#mv *.png ${DEPLOY_DIR}
-
 
 cd gh-pages
 git add .
