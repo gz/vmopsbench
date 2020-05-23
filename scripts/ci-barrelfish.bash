@@ -135,10 +135,12 @@ cp gh-pages/vmops/index.markdown ${DEPLOY_DIR}
 
 ls -lh
 
-gzip *.csv
-gzip *.log
-mv *.log.gz ${DEPLOY_DIR}
-mv *.csv.gz ${DEPLOY_DIR}
+gzip *.csv || true
+gzip *.log || true
+mv *.log.gz ${DEPLOY_DIR} || true
+mv *.csv.gz ${DEPLOY_DIR} || true
+mv *.pdf ${DEPLOY_DIR} || true
+mv *.png ${DEPLOY_DIR} || true
 
 cd gh-pages
 git add .
