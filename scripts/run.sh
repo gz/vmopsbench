@@ -20,6 +20,13 @@ rm *.log *.csv *.png *.pdf /dev/shm/vmops_bench_* || true
 sudo sysctl -w vm.max_map_count=50000000
 echo 100000 | sudo tee  /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
 
+if [[ $MAX_CORE -gt 90 ]]; then
+	 increment=8
+elif [[ $MAX_CORE -gt 24 ]]; then
+	increment=4
+else
+	increment=2
+fi
 
 for b in "${bench[@]}"; do
     for i in "${isolation[@]}"; do
@@ -35,7 +42,7 @@ for b in "${bench[@]}"; do
                             if [ ! -f "$CSVFILE" ]; then
                                 echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $CSVFILE
                             fi
-                            for cores in `seq 0 8 $MAX_CORES`; do
+                            for cores in `seq 0 $increment $MAX_CORES`; do
                                 cat /proc/interrupts | grep TLB | tee -a $LOGFILE;
                                 (./bin/vmops -p $cores -t $DURATION_MS -m $memsize -b ${benchmark} ${numa} ${h} | tee -a $CSVFILE) 3>&1 1>&2 2>&3 | tee -a $LOGFILE
                             done

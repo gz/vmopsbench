@@ -22,6 +22,13 @@ numa=''
 huge=''
 memsize='4096'
 
+if [[ $MAX_CORE -gt 90 ]]; then
+	 increment=8
+elif [[ $MAX_CORE -gt 24 ]]; then
+	increment=4
+else
+	increment=2
+fi
 
 if [[ "$1" = "throughput" ]]; then
 
@@ -36,7 +43,7 @@ if [[ "$1" = "throughput" ]]; then
 
 		CSVFILE_ALL=vmops_linux_${benchmark}_threads_all_results.csv
 		echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $CSVFILE_ALL
-		for cores in 1 `seq 0 8 $MAX_CORES`; do
+		for cores in 1 `seq 0 $increment $MAX_CORES`; do
 
 	   	    LOGFILE=vmops_linux_${benchmark}_threads_${cores}_logfile.log
 			CSVFILE=vmops_linux_${benchmark}_threads_${cores}_results.csv
@@ -64,7 +71,7 @@ elif [[ "$1" = "latency" ]]; then
 		THPT_CSVFILE_ALL=vmops_linux_${benchmark}_threads_all_throughput_results.csv
 
 		echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $THPT_CSVFILE_ALL
-		for cores in 1 `seq 8 8 $MAX_CORES`; do
+		for cores in 1 `seq 8 $increment $MAX_CORES`; do
 
 	   	    LOGFILE=vmops_linux_${benchmark}_threads_${cores}_latency_logfile.log
 			THPT_CSVFILE=vmops_linux_${benchmark}_threads_${cores}_throughput_results.csv
