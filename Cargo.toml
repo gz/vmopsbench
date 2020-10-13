@@ -18,7 +18,7 @@ debug = true
 [dev-dependencies]
 hwloc = "0.5"
 num_cpus = "1.12"
-x86 = "0.29"
+x86 = "0.34.0"
 core_affinity = "0.5.10"
 serde = { version = "1", features = ["derive"] }
 clap = { version = "2", features = ["yaml"] }
