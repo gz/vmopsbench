@@ -1,6 +1,7 @@
 use super::PAGE_SIZE;
 use crate::Bench;
 use libc::*;
+use std::cell::RefCell;
 use std::sync::{Arc, Barrier};
 use std::time::{Duration, Instant};
 use x86::random::rdrand16;
@@ -9,6 +10,7 @@ use x86::random::rdrand16;
 pub struct MIX {
     path: &'static str,
     page: Vec<u8>,
+    open_files: RefCell<usize>,
     file_size: i64,
 }
 
@@ -17,47 +19,56 @@ impl Default for MIX {
         let page = vec![0xb; PAGE_SIZE];
         MIX {
             // It doesn't work if trailing \0 isn't there in the filename.
-            path: "/mnt/file.txt\0",
+            path: "/mnt",
             page,
+            open_files: RefCell::new(0),
             file_size: 256 * 1024 * 1024,
         }
     }
 }
 
 impl Bench for MIX {
-    fn init(&self, _cores: Vec<u64>) {
+    fn init(&self, _cores: Vec<u64>, open_files: usize) {
+        *self.open_files.borrow_mut() = open_files;
         unsafe {
-            let _a = remove(self.path.as_ptr() as *const i8);
-            let fd = open(self.path.as_ptr() as *const i8, O_CREAT | O_RDWR, S_IRWXU);
-            if fd == -1 {
-                panic!("Unable to create a file");
-            }
-            let mut size = 0;
-            while size <= self.file_size {
-                if write(fd, self.page.as_ptr() as *const c_void, PAGE_SIZE) != PAGE_SIZE as isize {
-                    panic!("MIX: Write failed");
+            for file in 0..open_files {
+                let filename = format!("{}/file{}.txt\0", self.path, file);
+                let _a = remove(filename.as_ptr() as *const i8);
+                let fd = open(filename.as_ptr() as *const i8, O_CREAT | O_RDWR, S_IRWXU);
+                if fd == -1 {
+                    panic!("Unable to create a file");
                 }
-                size += PAGE_SIZE as i64;
+                let mut size = 0;
+                while size <= self.file_size {
+                    if write(fd, self.page.as_ptr() as *const c_void, PAGE_SIZE)
+                        != PAGE_SIZE as isize
+                    {
+                        panic!("MIX: Write failed");
+                    }
+                    size += PAGE_SIZE as i64;
+                }
+
+                let stat = {
+                    let mut info = std::mem::MaybeUninit::uninit();
+                    fstat(fd, info.as_mut_ptr());
+                    info.assume_init()
+                };
+                assert_eq!(self.file_size + PAGE_SIZE as i64, stat.st_size);
+
+                fsync(fd);
+                close(fd);
             }
-
-            let stat = {
-                let mut info = std::mem::MaybeUninit::uninit();
-                fstat(fd, info.as_mut_ptr());
-                info.assume_init()
-            };
-            assert_eq!(self.file_size + PAGE_SIZE as i64, stat.st_size);
-
-            fsync(fd);
-            close(fd);
         }
     }
 
-    fn run(&self, b: Arc<Barrier>, duration: u64, _core: u64, write_ratio: usize) -> Vec<usize> {
+    fn run(&self, b: Arc<Barrier>, duration: u64, core: u64, write_ratio: usize) -> Vec<usize> {
         let mut secs = duration as usize;
         let mut iops = Vec::with_capacity(secs);
 
         unsafe {
-            let fd = open(self.path.as_ptr() as *const i8, O_CREAT | O_RDWR, S_IRWXU);
+            let file = core as usize % *self.open_files.borrow();
+            let filename = format!("{}/file{}.txt\0", self.path, file);
+            let fd = open(filename.as_ptr() as *const i8, O_CREAT | O_RDWR, S_IRWXU);
             if fd == -1 {
                 panic!("Unable to open a file");
             }
@@ -100,7 +111,7 @@ impl Bench for MIX {
             fsync(fd);
             close(fd);
 
-            let _a = remove(self.path.as_ptr() as *const i8);
+            let _a = remove(filename.as_ptr() as *const i8);
         }
 
         iops.clone()

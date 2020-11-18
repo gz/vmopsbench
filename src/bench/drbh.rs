@@ -22,7 +22,7 @@ impl Default for DRBH {
 }
 
 impl Bench for DRBH {
-    fn init(&self, _cores: Vec<u64>) {
+    fn init(&self, _cores: Vec<u64>, _open_files: usize) {
         unsafe {
             let _a = remove(self.path.as_ptr() as *const i8);
             let fd = open(self.path.as_ptr() as *const i8, O_CREAT | O_RDWR, S_IRWXU);

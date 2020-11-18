@@ -28,7 +28,7 @@ impl Default for DRBL {
 }
 
 impl Bench for DRBL {
-    fn init(&self, cores: Vec<u64>) {
+    fn init(&self, cores: Vec<u64>, _open_files: usize) {
         unsafe {
             for core in cores {
                 let filename = format!("{}/file{}.txt\0", self.path, core);

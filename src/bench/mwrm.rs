@@ -26,7 +26,7 @@ impl Default for MWRM {
 }
 
 impl Bench for MWRM {
-    fn init(&self, cores: Vec<u64>) {
+    fn init(&self, cores: Vec<u64>, _open_files: usize) {
         let len = cores.len();
         *self.total_cores.borrow_mut() = len as u64;
         let files_per_core = self.total_files / len as u64;

@@ -20,7 +20,7 @@ impl Default for MWRL {
 }
 
 impl Bench for MWRL {
-    fn init(&self, cores: Vec<u64>) {
+    fn init(&self, cores: Vec<u64>, _open_files: usize) {
         unsafe {
             for core in cores {
                 let dir_name = format!("{}/{}/\0", self.path, core);

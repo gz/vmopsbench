@@ -25,7 +25,7 @@ impl Default for DWOM {
 }
 
 impl Bench for DWOM {
-    fn init(&self, cores: Vec<u64>) {
+    fn init(&self, cores: Vec<u64>, _open_files: usize) {
         unsafe {
             let num_cores = cores.len();
             let _a = remove(self.path.as_ptr() as *const i8);
