@@ -12,24 +12,28 @@ pub struct MIX {
     page: Vec<u8>,
     open_files: RefCell<usize>,
     file_size: i64,
+    fds: RefCell<Vec<c_int>>,
 }
 
 impl Default for MIX {
     fn default() -> MIX {
         let page = vec![0xb; PAGE_SIZE];
+        let fd = vec![-1; 512];
         MIX {
             // It doesn't work if trailing \0 isn't there in the filename.
             path: "/mnt",
             page,
             open_files: RefCell::new(0),
             file_size: 256 * 1024 * 1024,
+            fds: RefCell::new(fd),
         }
     }
 }
 
 impl Bench for MIX {
-    fn init(&self, _cores: Vec<u64>, open_files: usize) {
+    fn init(&self, cores: Vec<u64>, open_files: usize) {
         *self.open_files.borrow_mut() = open_files;
+        let mut temp: Vec<c_int> = Vec::with_capacity(open_files);
         unsafe {
             for file in 0..open_files {
                 let filename = format!("{}/file{}.txt\0", self.path, file);
@@ -56,8 +60,16 @@ impl Bench for MIX {
                 assert_eq!(self.file_size + PAGE_SIZE as i64, stat.st_size);
 
                 fsync(fd);
-                close(fd);
+                temp.push(fd);
             }
+        }
+
+        // Distribute the files among different cores.
+        let mut iter = 0;
+        for core in cores.iter() {
+            let id = *core as usize;
+            self.fds.borrow_mut()[id] = temp[iter % open_files];
+            iter += 1;
         }
     }
 
@@ -66,9 +78,7 @@ impl Bench for MIX {
         let mut iops = Vec::with_capacity(secs);
 
         unsafe {
-            let file = core as usize % *self.open_files.borrow();
-            let filename = format!("{}/file{}.txt\0", self.path, file);
-            let fd = open(filename.as_ptr() as *const i8, O_CREAT | O_RDWR, S_IRWXU);
+            let fd = self.fds.borrow()[core as usize];
             if fd == -1 {
                 panic!("Unable to open a file");
             }
@@ -108,10 +118,15 @@ impl Bench for MIX {
                 secs -= 1;
             }
 
+            b.wait();
+
             fsync(fd);
             close(fd);
 
-            let _a = remove(filename.as_ptr() as *const i8);
+            for i in 0..*self.open_files.borrow() {
+                let filename = format!("{}/file{}.txt\0", self.path, i);
+                let _a = remove(filename.as_ptr() as *const i8);
+            }
         }
 
         iops.clone()
