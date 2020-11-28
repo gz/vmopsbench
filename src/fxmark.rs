@@ -122,7 +122,7 @@ where
             .expect("Can't open file");
         if write_headers {
             let row =
-                "git_rev,thread_id,benchmark,ncores,write_ratio, open_files, duration_total,duration,operations\n";
+                "git_rev,thread_id,benchmark,ncores,write_ratio,open_files,duration_total,duration,operations\n";
             let r = csv_file.write(row.as_bytes());
             assert!(r.is_ok());
         }
