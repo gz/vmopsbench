@@ -230,7 +230,8 @@ fn main() {
                 .takes_value(true)
                 .required(true)
                 .possible_values(&[
-                    "drbl", "drbh", "dwol", "dwom", "dwal", "mwrl", "mwrm", "mix",
+                    "drbl", "drbh", "dwol", "dwom", "dwal", "mwrl", "mwrm", "mixX0", "mixX1",
+                    "mixX5", "mixX10", "mixX20", "mixX40", "mixX60", "mixX80", "mixX100",
                 ])
                 .help("Benchmark to run."),
         )
@@ -243,7 +244,7 @@ fn main() {
     };
 
     let file_name = "fsops_benchmark.csv";
-    let _ret = std::fs::remove_file(file_name);
+    //let _ret = std::fs::remove_file(file_name);
     let thread_mapping = ThreadMapping::Sequential;
     let default_write_ratio = 0;
     let default_open_files = 0;
@@ -346,7 +347,16 @@ fn main() {
             );
     }
 
-    if versions.contains(&"mix") {
+    if versions.contains(&"mixX0")
+        || versions.contains(&"mixX1")
+        || versions.contains(&"mixX5")
+        || versions.contains(&"mixX10")
+        || versions.contains(&"mixX20")
+        || versions.contains(&"mixX40")
+        || versions.contains(&"mixX60")
+        || versions.contains(&"mixX80")
+        || versions.contains(&"mixX100")
+    {
         fn open_files_default() -> Vec<usize> {
             let topology = MachineTopology::new();
             let sockets = topology.sockets();
@@ -371,14 +381,30 @@ fn main() {
             open_files.clone()
         }
 
-        let open_files = open_files_default();
-        for write_ratio in vec![0, 1, 5, 10, 20, 40, 60, 80, 100] {
-            for open_file in &open_files {
-                BenchMark::<MIX>::new()
-                    .thread_defaults()
-                    .thread_mapping(thread_mapping)
-                    .start(duration, "mix", file_name, write_ratio, *open_file);
+        use core::num::ParseIntError;
+        use core::str::FromStr;
+        struct Args {
+            write_ratio: usize,
+        }
+
+        impl FromStr for Args {
+            type Err = ParseIntError;
+
+            fn from_str(input: &str) -> Result<Self, Self::Err> {
+                let coords: Vec<&str> = input.split('X').collect();
+                let write_ratio = coords[1].parse::<usize>()?;
+                Ok(Args { write_ratio })
             }
+        }
+
+        let open_files = open_files_default();
+        let write_ratio = Args::from_str(versions[0]).unwrap().write_ratio;
+
+        for open_file in &open_files {
+            BenchMark::<MIX>::new()
+                .thread_defaults()
+                .thread_mapping(thread_mapping)
+                .start(duration, "mix", file_name, write_ratio, *open_file);
         }
     }
 }

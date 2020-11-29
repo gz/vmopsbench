@@ -1,21 +1,24 @@
 #!/bin/bash
 set -ex 
 
-pip3 install -r scripts/requirements.txt
-
 rm *.log *.csv *.png *.pdf /dev/shm/vmops_bench_* || true
 sudo umount -f /mnt || true
-# Mount tmpfs
-sudo mount tmpfs /mnt -t tmpfs
 
-benchmark='drbl drbh dwol dwom mix'
+benchmarks='drbl drbh dwol dwom mixX0 mixX1 mixX5 mixX10 mixX20 mixX40 mixX60 mixX80 mixX100'
 CSVFILE=fsops_benchmark.csv
 
-RUST_TEST_THREADS=1 cargo bench --bench fxmark -- --duration 10 --type $benchmark
-python3 scripts/plot.py $CSVFILE
+for benchmark in $benchmarks; do
+    # Mount tmpfs
+    sudo mount tmpfs /mnt -t tmpfs
 
-# Unmount tmpfs
-sudo umount -f /mnt
+    RUST_TEST_THREADS=1 cargo bench --bench fxmark -- --duration 10 --type $benchmark
+
+    # Unmount tmpfs
+    sudo umount -f /mnt
+done
+
+pip3 install -r scripts/requirements.txt
+python3 scripts/plot.py $CSVFILE
 
 rm -rf gh-pages
 git clone -b gh-pages git@vmops-gh-pages:gz/vmops-bench.git gh-pages
