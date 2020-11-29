@@ -2,6 +2,7 @@ use super::PAGE_SIZE;
 use crate::Bench;
 use libc::*;
 use std::cell::RefCell;
+use std::io::Error;
 use std::sync::{Arc, Barrier};
 use std::time::{Duration, Instant};
 use x86::random::rdrand16;
@@ -40,14 +41,17 @@ impl Bench for MIX {
                 let _a = remove(filename.as_ptr() as *const i8);
                 let fd = open(filename.as_ptr() as *const i8, O_CREAT | O_RDWR, S_IRWXU);
                 if fd == -1 {
-                    panic!("Unable to create a file");
+                    panic!(
+                        "Unable to create a file due to {:?}",
+                        Error::last_os_error()
+                    );
                 }
                 let mut size = 0;
                 while size <= self.file_size {
                     if write(fd, self.page.as_ptr() as *const c_void, PAGE_SIZE)
                         != PAGE_SIZE as isize
                     {
-                        panic!("MIX: Write failed");
+                        panic!("MIX: Write failed due to {:?}", Error::last_os_error());
                     }
                     size += PAGE_SIZE as i64;
                 }
@@ -80,7 +84,7 @@ impl Bench for MIX {
         unsafe {
             let fd = self.fds.borrow()[core as usize];
             if fd == -1 {
-                panic!("Unable to open a file");
+                panic!("Unable to open a file due to {:?}", Error::last_os_error());
             }
             let total_pages = self.file_size / PAGE_SIZE as i64;
             let page: &mut [i8; PAGE_SIZE as usize] = &mut [0; PAGE_SIZE as usize];
