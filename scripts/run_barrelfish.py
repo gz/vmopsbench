@@ -47,7 +47,9 @@ module /x86_64/sbin/corectrl auto
 # module /x86_64/sbin/ahcid auto
 
 #
-module /x86_64/sbin/vmops_array_mcn -p {} {} -b {} -m {}
+#module /x86_64/sbin/vmops_array_mcn -p {ncores} {bench_arg} -b {benchmark} -m {mem}
+module /x86_64/sbin/capopsbenchmsg  mgmt {ncores}
+#module /x86_64/sbin/capopsbench  mgmt {ncores}
 """
 
 #
@@ -168,7 +170,7 @@ def build_barrelfish(args):
             make(*make_args)
 
             make_args = ['-j', str(multiprocessing.cpu_count()),
-                         'x86_64/sbin/vmops_array_mcn']
+                         'x86_64/sbin/vmops_array_mcn', 'x86_64/sbin/capopsbenchmsg', 'x86_64/sbin/capopsbench']
             if args.verbose:
                 print("make " + " ".join(make_args))
             make(*make_args)
@@ -203,7 +205,7 @@ def run_barrelfish(args):
         if args.benchmark.startswith("elevate"):
             mem = "40960000"
 
-        my_menu = MENU_LST.format(args.cores, bench_arg, args.benchmark, mem)
+        my_menu = MENU_LST.format(ncores=args.cores, bench_arg=bench_arg, benchmark=args.benchmark, mem=mem)
         if args.verbose:
             print("Using the following generated menu.lst")
             print(my_menu)
