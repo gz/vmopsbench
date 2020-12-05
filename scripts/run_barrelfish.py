@@ -190,12 +190,12 @@ def run_barrelfish(args):
 
     log("Running Barrelfish {}".format(args.cores))
 
-#module /x86_64/sbin/{bin} -p {ncores} {bench_arg} -b {benchmark} -m {mem}
-module /x86_64/sbin/{bin}  mgmt {ncores}
-#module /x86_64/sbin/{bin}  mgmt {ncores}
-vmops_array_mcn
-capopsbenchmsg
-capopsbench
+# #module /x86_64/sbin/{bin} -p {ncores} {bench_arg} -b {benchmark} -m {mem}
+# module /x86_64/sbin/{bin}  mgmt {ncores}
+# #module /x86_64/sbin/{bin}  mgmt {ncores}
+# vmops_array_mcn
+# capopsbenchmsg
+# capopsbench
 
     with open(MENU_LST_PATH, 'w') as menu_lst_file:
         timeout_factor = 60

@@ -74,6 +74,7 @@ if [[ "$1" = "throughput" ]]; then
 		    fi
 		done
 	done
+else
 	echo "ERROR: UNKNOWN ARGUMENT $1"
 	exit 1
 fi
