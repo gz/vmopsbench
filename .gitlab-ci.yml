@@ -23,6 +23,17 @@ build:
 #   tags:
 #     - skylake2x
 
+benchmark:skylake2x:barrelfishtlb:
+  stage: benchmark
+  script:
+    - bash scripts/ci-barrelfish-tlb.bash throughput
+  dependencies:
+    - build
+  variables:
+    GIT_STRATEGY: fetch
+  tags:
+    - skylake2x
+
 # benchmark:skylake2x:barrelfishlatency:
 #   stage: benchmark
 #   script:
@@ -67,6 +78,17 @@ benchmark:skylake2x:linuxthroughput:
 #     GIT_STRATEGY: fetch
 #   tags:
 #     - skylake4x
+
+benchmark:skylake4x:barrelfishtlb:
+  stage: benchmark
+  script:
+    - bash scripts/ci-barrelfish-tlb.bash throughput
+  dependencies:
+    - build
+  variables:
+    GIT_STRATEGY: fetch
+  tags:
+    - skylake4x
 
 # benchmark:skylake4x:barrelfishlatency:
 #   stage: benchmark

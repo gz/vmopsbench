@@ -47,10 +47,11 @@ module /x86_64/sbin/corectrl auto
 # module /x86_64/sbin/ahcid auto
 
 #
-#module /x86_64/sbin/vmops_array_mcn -p {ncores} {bench_arg} -b {benchmark} -m {mem}
-module /x86_64/sbin/capopsbenchmsg  mgmt {ncores}
-#module /x86_64/sbin/capopsbench  mgmt {ncores}
+module /x86_64/sbin/{bin}  {params}
 """
+
+
+
 
 #
 # Command line argument parser
@@ -64,7 +65,7 @@ parser.add_argument("-n", "--norun", action="store_true",
 parser.add_argument("-c", "--cores", type=int,
                     help="How many cores to run on")
 parser.add_argument("-b", "--benchmark",
-                    help="How many cores to run on")
+                    help="what benchmark to execute")
 parser.add_argument("-o", "--nops", type=int, default=-1,
                     help="How many operations should be done")
 parser.add_argument("-t", "--time", type=int, default=-1,
@@ -189,23 +190,44 @@ def run_barrelfish(args):
 
     log("Running Barrelfish {}".format(args.cores))
 
+#module /x86_64/sbin/{bin} -p {ncores} {bench_arg} -b {benchmark} -m {mem}
+module /x86_64/sbin/{bin}  mgmt {ncores}
+#module /x86_64/sbin/{bin}  mgmt {ncores}
+vmops_array_mcn
+capopsbenchmsg
+capopsbench
+
     with open(MENU_LST_PATH, 'w') as menu_lst_file:
         timeout_factor = 60
         safelog = True
-        if args.nops != -1:
-            bench_arg = "-o {} -s {} -r 0".format(args.nops, args.nops)
-            timeout_factor = 180
-            safelog = False
 
-        elif args.time != -1:
-            bench_arg = "-t {}".format(args.time)
-        else:
-            bench_arg = "-t 4000"
-        mem = "4096"
-        if args.benchmark.startswith("elevate"):
-            mem = "40960000"
+        if args.benchmark == 'capopsbench' :
+            bin = args.benchmark
+            params = "mgmt {}".format(args.cores)
+        elif  args.benchmark == 'capopsbenchmsg' :
+            bin = args.benchmark
+            params = "mgmt {}".format(args.cores)
+        else :
+            bin = 'vmops_array_mcn'
+            if args.nops != -1:
+                bench_arg = "-o {} -s {} -r 0".format(args.nops, args.nops)
+                timeout_factor = 180
+                safelog = False
+            elif args.time != -1:
+                bench_arg = "-t {}".format(args.time)
+            else:
+                bench_arg = "-t 4000"
+            mem = "4096"
+            if args.benchmark.startswith("elevate"):
+                mem = "40960000"
+            params = "-p {ncores} {bench_arg} -b {benchmark} -m {mem}".format(
+                ncores = args.cores,
+                benchmark = args.benchmark,
+                mem = mem,
+                bench_arg = bench_arg
+            )
 
-        my_menu = MENU_LST.format(ncores=args.cores, bench_arg=bench_arg, benchmark=args.benchmark, mem=mem)
+        my_menu = MENU_LST.format(bin=args.benchmark, params=params)
         if args.verbose:
             print("Using the following generated menu.lst")
             print(my_menu)
