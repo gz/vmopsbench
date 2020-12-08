@@ -45,10 +45,10 @@ benchmark:skylake2x:barrelfishtlb:
 #   tags:
 #     - skylake2x
 
-benchmark:skylake2x:linuxlatency:
+benchmark:skylake2x:linuxtlb:
   stage: benchmark
   script:
-    - bash scripts/ci-linux.bash latency
+    - bash scripts/ci-linux-tlb.bash latency
   dependencies:
     - build
   variables:
@@ -56,16 +56,27 @@ benchmark:skylake2x:linuxlatency:
   tags:
     - skylake2x
 
-benchmark:skylake2x:linuxthroughput:
-  stage: benchmark
-  script:
-    - bash scripts/ci-linux.bash throughput
-  dependencies:
-    - build
-  variables:
-    GIT_STRATEGY: fetch
-  tags:
-    - skylake2x
+# benchmark:skylake2x:linuxlatency:
+#   stage: benchmark
+#   script:
+#     - bash scripts/ci-linux.bash latency
+#   dependencies:
+#     - build
+#   variables:
+#     GIT_STRATEGY: fetch
+#   tags:
+#     - skylake2x
+
+# benchmark:skylake2x:linuxthroughput:
+#   stage: benchmark
+#   script:
+#     - bash scripts/ci-linux.bash throughput
+#   dependencies:
+#     - build
+#   variables:
+#     GIT_STRATEGY: fetch
+#   tags:
+#     - skylake2x
 
 
 # benchmark:skylake4x:barrelfishthroughput:
@@ -101,10 +112,10 @@ benchmark:skylake4x:barrelfishtlb:
 #   tags:
 #     - skylake4x
 
-benchmark:skylake4x:linuxlatency:
+benchmark:skylake4x:linuxtlb:
   stage: benchmark
   script:
-    - bash scripts/ci-linux.bash latency
+    - bash scripts/ci-linux-tlb.bash latency
   dependencies:
     - build
   variables:
@@ -112,15 +123,26 @@ benchmark:skylake4x:linuxlatency:
   tags:
     - skylake4x
 
-benchmark:skylake4x:linuxthroughput:
-  stage: benchmark
-  script:
-    - bash scripts/ci-linux.bash throughput
-  dependencies:
-    - build
-  variables:
-    GIT_STRATEGY: fetch
-  tags:
-    - skylake4x
+# benchmark:skylake4x:linuxlatency:
+#   stage: benchmark
+#   script:
+#     - bash scripts/ci-linux.bash latency
+#   dependencies:
+#     - build
+#   variables:
+#     GIT_STRATEGY: fetch
+#   tags:
+#     - skylake4x
+
+# benchmark:skylake4x:linuxthroughput:
+#   stage: benchmark
+#   script:
+#     - bash scripts/ci-linux.bash throughput
+#   dependencies:
+#     - build
+#   variables:
+#     GIT_STRATEGY: fetch
+#   tags:
+#     - skylake4x
 
 

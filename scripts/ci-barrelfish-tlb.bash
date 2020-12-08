@@ -46,6 +46,14 @@ memsize='4096'
 BF_DURATION=3000
 BF_SAMPLES=10000
 
+if [[ $MAX_CORE -gt 90 ]]; then
+	increment=8
+elif [[ $MAX_CORE -gt 24 ]]; then
+	increment=4
+else
+	increment=2
+fi
+
 
 if [[ "$1" = "throughput" ]]; then
 
@@ -59,7 +67,7 @@ if [[ "$1" = "throughput" ]]; then
 		if [ -f $CSVFILE ]; then
 			cat $CSVFILE >> $CSVFILE_ALL
 		fi;
-		for corecount in 1 `seq 8 8 $MAX_CORES`; do
+		for corecount in 1 `seq 0 $increment $MAX_CORES`; do
 			echo "$benchmark with $corecount cores"
 
 			LOGFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_logfile.log
