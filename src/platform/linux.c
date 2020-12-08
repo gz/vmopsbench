@@ -454,7 +454,7 @@ plat_thread_t plat_thread_start(plat_thread_fn_t run, struct vmops_bench_run_arg
     thread->coreid = coreid;
     thread->run = run;
     thread->st = st;
-    
+
     if (pthread_create(&thread->thread, NULL, plat_thread_run_fn, thread)) {
         free(thread);
         return 0;
@@ -626,6 +626,16 @@ double plat_time_to_ms(plat_time_t time)
     return (double)time / 1000000.0;
 }
 
+
+/**
+ * @brief sleeps for us
+ *
+ * @param us    the time to sleep
+ */
+void plat_usleep(uint32_t us)
+{
+    usleep(us);
+}
 
 /*
  * ================================================================================================

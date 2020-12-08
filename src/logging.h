@@ -117,7 +117,7 @@ extern FILE *latout;
 #define LOG_STATS_HEADER()                                                                        \
     fprintf(stderr, "====================== BEGIN STATS ======================\n");               \
     fprintf(latout, "benchmark,core,ncores,memsize,numainterleave,mappings_size,page_"           \
-                    "size,memobj,isolation,threadid,elapsed,couter,latency\n");  
+                    "size,memobj,isolation,threadid,elapsed,couter,latency\n");
 
 #define LOG_STATS_FOOTER()                                                                        \
     fprintf(stderr, "====================== END STATS ======================\n");

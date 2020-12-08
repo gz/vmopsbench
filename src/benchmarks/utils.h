@@ -66,11 +66,13 @@ void vmops_utils_print_csv(struct vmops_bench_run_arg *args);
  * @brief prepares the arguments for teh benchmark threads
  *
  * @param cfg       the benchmark configs
+ * @param shared    pointer to a shared variable
  * @param retargs   returns the thread arguments array
  *
  * @returns 0 on success, -1 on failure
  */
-int vmops_utils_prepare_args(struct vmops_bench_cfg *cfg, struct vmops_bench_run_arg **retargs);
+int vmops_utils_prepare_args(struct vmops_bench_cfg *cfg, void *shared,
+                             struct vmops_bench_run_arg **retargs);
 
 
 /**
@@ -128,6 +130,11 @@ static inline void *utils_vmops_get_map_address(uint32_t tid)
 static inline void vmops_utils_add_stats(struct vmops_stats *stats, uint32_t tid, uint64_t ops,
                                          plat_time_t t_elapsed, plat_time_t val)
 {
+    if (stats->dryrun) {
+        stats->dryrun--;
+        return;
+    }
+
     if (stats->sampling_next > t_elapsed) {
         return;
     }

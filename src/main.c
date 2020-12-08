@@ -257,6 +257,8 @@ int main(int argc, char *argv[])
     } else if (strncmp(cfg.benchmark, "elevate", 7) == 0) {
         /* protection benchmark */
         r = vmops_bench_run_protect_elevate(&cfg, cfg.benchmark + 7);
+    } else if (strncmp(cfg.benchmark, "tlbshoot", 8) == 0) {
+        r = vmops_bench_run_tlbshoot(&cfg, cfg.benchmark + 8);
     } else {
         LOG_ERR("unsupported benchmark '%s'\n", cfg.benchmark);
     }

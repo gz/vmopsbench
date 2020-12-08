@@ -124,7 +124,7 @@ int vmops_bench_run_protect_elevate(struct vmops_bench_cfg *cfg, const char *opt
              vmops_utils_print_options(cfg));
 
     struct vmops_bench_run_arg *args;
-    if (vmops_utils_prepare_args(cfg, &args)) {
+    if (vmops_utils_prepare_args(cfg, NULL, &args)) {
         LOG_ERR("failed to prepare arguments\n");
         return -1;
     }

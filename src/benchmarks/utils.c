@@ -181,7 +181,8 @@ void vmops_utils_print_csv(struct vmops_bench_run_arg *args)
  *
  * @returns 0 on success, -1 on failure
  */
-int vmops_utils_prepare_args(struct vmops_bench_cfg *cfg, struct vmops_bench_run_arg **retargs)
+int vmops_utils_prepare_args(struct vmops_bench_cfg *cfg, void *shared,
+                             struct vmops_bench_run_arg **retargs)
 {
     plat_error_t err;
 
@@ -250,10 +251,12 @@ int vmops_utils_prepare_args(struct vmops_bench_cfg *cfg, struct vmops_bench_run
     for (uint32_t i = 0; i < cfg->corelist_size; i++) {
         args[i].tid = i;
         args[i].cfg = cfg;
+        args[i].shared = shared;
         args[i].coreid = cfg->coreslist[i];
         args[i].stats.sampling_delta = plat_convert_time(cfg->rate);
         args[i].stats.sampling_next = 0;
         args[i].stats.idx_max = cfg->stats;
+        args[i].stats.dryrun = 10;
         args[i].stats.values = cfg->stats > 0 ? vals + cfg->stats * i : NULL;
     }
 

@@ -16,7 +16,7 @@
 #include "../logging.h"
 
 ///< the default rate of sampling
-#define DEFAULT_SAMPLING_RATE_MS 10
+#define DEFAULT_SAMPLING_RATE_MS 0
 
 
 ///< the number of basic mappings that are being crated
@@ -53,6 +53,7 @@ struct vmops_stats
     struct statval *values;
     size_t idx;
     size_t idx_max;
+    size_t dryrun;
     plat_time_t sampling_delta;
     plat_time_t sampling_next;
 };
@@ -69,6 +70,7 @@ struct vmops_bench_run_arg
     plat_barrier_t barrier;
     size_t count;
     double duration;
+    void *shared;
     struct vmops_stats stats;
 };
 
@@ -103,6 +105,16 @@ int vmops_bench_run_protect(struct vmops_bench_cfg *cfg, const char *opts);
  * @returns 0 success, -1 error
  */
 int vmops_bench_run_protect_elevate(struct vmops_bench_cfg *cfg, const char *opts);
+
+/**
+ * @brief starts the tlbshootdown benchmark
+ *
+ * @param cfg   the benchmark configuration
+ * @param opts  the options for the benchmark
+ *
+ * @returns 0 success, -1 error
+ */
+int vmops_bench_run_tlbshoot(struct vmops_bench_cfg *cfg, const char *opts);
 
 
 #endif /* __VMOPS_BENCHMARKS_H_ */

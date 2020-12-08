@@ -900,6 +900,16 @@ double plat_time_to_ms(plat_time_t time)
 }
 
 
+/**
+ * @brief sleeps for us
+ *
+ * @param us    the time to sleep
+ */
+void plat_usleep(uint32_t us)
+{
+    return;
+}
+
 /*
  * ================================================================================================
  * Logging Functions
