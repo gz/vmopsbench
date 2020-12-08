@@ -13,6 +13,7 @@
         "src/benchmarks/mapunmap.c",
         "src/benchmarks/protect.c",
         "src/benchmarks/protectelevate.c",
+        "src/benchmarks/tlbshoot.c",
         "src/benchmarks/utils.c",
         "src/platform/barrelfish.c"
     ],
@@ -28,6 +29,7 @@
         "src/benchmarks/mapunmap.c",
         "src/benchmarks/protect.c",
         "src/benchmarks/protectelevate.c",
+        "src/benchmarks/tlbshoot.c",
         "src/benchmarks/utils.c",
         "src/platform/barrelfish.c"
     ],
@@ -44,6 +46,7 @@
         "src/benchmarks/mapunmap.c",
         "src/benchmarks/protect.c",
         "src/benchmarks/protectelevate.c",
+        "src/benchmarks/tlbshoot.c",
         "src/benchmarks/utils.c",
         "src/platform/barrelfish.c"
     ],
