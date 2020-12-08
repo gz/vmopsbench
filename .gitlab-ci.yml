@@ -12,6 +12,17 @@ build:
   script:
     - make
 
+benchmark:skylake2x:linuxtlb:
+  stage: benchmark
+  script:
+    - bash scripts/ci-linux-tlb.bash latency
+  dependencies:
+    - build
+  variables:
+    GIT_STRATEGY: fetch
+  tags:
+    - skylake2x
+
 # benchmark:skylake2x:barrelfishthroughput:
 #   stage: benchmark
 #   script:
@@ -44,17 +55,6 @@ benchmark:skylake2x:barrelfishtlb:
 #     GIT_STRATEGY: fetch
 #   tags:
 #     - skylake2x
-
-benchmark:skylake2x:linuxtlb:
-  stage: benchmark
-  script:
-    - bash scripts/ci-linux-tlb.bash latency
-  dependencies:
-    - build
-  variables:
-    GIT_STRATEGY: fetch
-  tags:
-    - skylake2x
 
 # benchmark:skylake2x:linuxlatency:
 #   stage: benchmark

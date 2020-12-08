@@ -31,7 +31,6 @@ static void *bench_run_fn(struct vmops_bench_run_arg *args)
         nops = SIZE_MAX;
     }
 
-
     LOG_INFO("thread %d ready.\n", args->tid);
     plat_thread_barrier(args->barrier);
 
@@ -103,6 +102,8 @@ static void *bench_run_fn(struct vmops_bench_run_arg *args)
     }
     t_end = plat_get_time();
 
+    *done = 0x1;
+
     plat_thread_barrier(args->barrier);
 
     args->count = counter;
@@ -113,7 +114,7 @@ static void *bench_run_fn(struct vmops_bench_run_arg *args)
     return NULL;
 }
 
-
+#if 0
 static void *bench_run_4k_fn(struct vmops_bench_run_arg *args)
 {
     plat_error_t err;
@@ -236,7 +237,7 @@ cleanup_and_exit:
 
     return NULL;
 }
-
+#endif
 
 /**
  * @brief starts the tlbshootdown benchmark
@@ -256,8 +257,7 @@ int vmops_bench_run_tlbshoot(struct vmops_bench_cfg *cfg, const char *opts)
     LOG_INFO("Preparing benchmark. 'map/unmap' with options '%s'\n",
              vmops_utils_print_options(cfg));
 
-    uint64_t done;
-
+    uint64_t done = 0;
     struct vmops_bench_run_arg *args;
     if (vmops_utils_prepare_args(cfg, (void *)&done, &args)) {
         LOG_ERR("failed to prepare arguments\n");
@@ -267,7 +267,7 @@ int vmops_bench_run_tlbshoot(struct vmops_bench_cfg *cfg, const char *opts)
 
     plat_thread_fn_t run_fn = bench_run_fn;
     if (cfg->map4k) {
-        run_fn = bench_run_4k_fn;
+        run_fn = bench_run_fn;
     } else {
         run_fn = bench_run_fn;
     }
