@@ -52,11 +52,11 @@ if [[ "$1" = "latency" ]]; then
 
 			NUM_SAMPES=$SAMPLES
 			if [[ $cores > 100 ]]; then
-				NUM_SAMPES=1000
+				NUM_SAMPES=2000
 			elif [[ $cores > 50 ]]; then
-			   	NUM_SAMPES=2000
+			   	NUM_SAMPES=5000
 			else
-				NUM_SAMPES=50000
+				NUM_SAMPES=10000
 			fi
 
 		    cat /proc/interrupts | grep TLB | tee -a $LOGFILE;

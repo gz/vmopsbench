@@ -30,11 +30,17 @@ static void *bench_run_fn(struct vmops_bench_run_arg *args)
     if (nops == 0) {
         nops = SIZE_MAX;
     }
+    size_t memsize = args->cfg->memsize;
+    void *taddr;
+    err = plat_vm_map(&taddr, memsize, args->memobj, 0, cfg->maphuge);
+    if (err != PLAT_ERR_OK) {
+        LOG_ERR("thread %d. failed to map memory!\n", args->tid);
+        return NULL;
+    }
 
     LOG_INFO("thread %d ready.\n", args->tid);
     plat_thread_barrier(args->barrier);
 
-    size_t memsize = args->cfg->memsize;
     plat_time_t t_current = plat_get_time();
     plat_time_t t_end = t_delta == PLAT_TIME_MAX ? PLAT_TIME_MAX : t_current + t_delta;
     plat_time_t t_start = t_current;
@@ -42,15 +48,16 @@ static void *bench_run_fn(struct vmops_bench_run_arg *args)
 
     uint64_t *done = (uint64_t*)args->shared;
     if (args->tid != 0) {
+        uint64_t *sum = (uint64_t*)taddr;
         while(!*done) {
-            plat_usleep(1000);
+            *sum = *sum + 1;
         }
         plat_thread_barrier(args->barrier);
 
         args->count = counter;
         args->duration = plat_time_to_ms(t_end - t_start);
 
-        LOG_INFO("thread %d done. ops = %zu, time=%.3f\n", args->tid, counter, args->duration);
+        LOG_INFO("thread %d done. ops = %zu, time=%.3f\n", args->tid, *sum, args->duration);
 
         return NULL;
     }
