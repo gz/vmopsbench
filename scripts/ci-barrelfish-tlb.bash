@@ -47,7 +47,7 @@ BF_DURATION=3000
 BF_SAMPLES=10000
 
 if [[ $MAX_CORE -gt 90 ]]; then
-	increment=8
+	increment=4
 elif [[ $MAX_CORE -gt 24 ]]; then
 	increment=4
 else
@@ -63,11 +63,11 @@ if [[ "$1" = "throughput" ]]; then
 		LOGFILE=vmops_barrelfish_${benchmark}_threads_1_logfile.log
 		CSVFILE=vmops_barrelfish_${benchmark}_threads_1_results.csv
 		echo "maxcores=1" >> $CSVFILE_ALL
-		(python3 scripts/run_barrelfish.py      --benchmark $benchmark  --csvthpt "$CSVFILE" --csvlat "tmp.csv" --cores 1 --hake --time $BF_DURATION || true) | tee $LOGFILE
+		(python3 scripts/run_barrelfish.py  --verbose   --benchmark $benchmark  --csvthpt "$CSVFILE" --csvlat "tmp.csv" --cores 1 --hake --time $BF_DURATION || true) | tee $LOGFILE
 		if [ -f $CSVFILE ]; then
 			cat $CSVFILE >> $CSVFILE_ALL
 		fi;
-		for corecount in 1 `seq 0 $increment $MAX_CORES`; do
+		for corecount in 1 4 8 14 16 24 28; do
 			echo "$benchmark with $corecount cores"
 
 			LOGFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_logfile.log
