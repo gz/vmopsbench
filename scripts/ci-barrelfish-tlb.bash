@@ -73,7 +73,7 @@ if [[ "$1" = "throughput" ]]; then
 			LOGFILE=tlb_barrelfish_${benchmark}_threads_${corecount}_logfile.log
 			CSVFILE=tlb_barrelfish_${benchmark}_threads_${corecount}_results.csv
 			echo "maxcores=${corecount}" >> $CSVFILE_ALL
-			(python3 scripts/run_barrelfish.py --csvthpt "$CSVFILE" --csvlat "tmp.csv" --benchmark $benchmark --cores $corecount --time $BF_DURATION || true) | tee $LOGFILE
+			(python3 scripts/run_barrelfish.py --verbose  --csvthpt "$CSVFILE" --csvlat "tmp.csv" --benchmark $benchmark --cores $corecount --time $BF_DURATION || true) | tee $LOGFILE
 
 			if [ -f $CSVFILE ]; then
 			    cat $CSVFILE >> $CSVFILE_ALL

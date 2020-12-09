@@ -63,7 +63,7 @@ if [[ "$1" = "throughput" ]]; then
 
 		LOGFILE=vmops_barrelfish_${benchmark}_threads_1_logfile.log
 		CSVFILE=vmops_barrelfish_${benchmark}_threads_1_results.csv
-		(python3 scripts/run_barrelfish.py      --benchmark $benchmark  --csvthpt "$CSVFILE" --csvlat "tmp.csv" --cores 1 --hake --time $BF_DURATION || true) | tee $LOGFILE
+		(python3 scripts/run_barrelfish.py  --verbose      --benchmark $benchmark  --csvthpt "$CSVFILE" --csvlat "tmp.csv" --cores 1 --hake --time $BF_DURATION || true) | tee $LOGFILE
 		if [ -f $CSVFILE ]; then
 			tail -n +2 $CSVFILE >> $CSVFILE_ALL
 		fi;
@@ -73,7 +73,7 @@ if [[ "$1" = "throughput" ]]; then
 			LOGFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_logfile.log
 			CSVFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_results.csv
 
-			(python3 scripts/run_barrelfish.py --csvthpt "$CSVFILE" --csvlat "tmp.csv" --benchmark $benchmark --cores $corecount --time $BF_DURATION || true) | tee $LOGFILE
+			(python3 scripts/run_barrelfish.py --verbose   --csvthpt "$CSVFILE" --csvlat "tmp.csv" --benchmark $benchmark --cores $corecount --time $BF_DURATION || true) | tee $LOGFILE
 
 			if [ -f $CSVFILE ]; then
 			    tail -n +2 $CSVFILE >> $CSVFILE_ALL
