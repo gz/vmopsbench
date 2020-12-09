@@ -117,7 +117,7 @@ elif [[ "$1" = "latency" ]]; then
 		    fi
 
 		    if [ -f $LATENCY_CSVFILE ]; then
-				python3 scripts/histogram.py $LATENCY_CSVFILE Barrelfish
+				python3 scripts/histogram.py $LATENCY_CSVFILE Barrelfish || true
 		    else
 		    	echo "WARNING: $LATENCY_CSVFILE does not exists!!"
 		    fi
