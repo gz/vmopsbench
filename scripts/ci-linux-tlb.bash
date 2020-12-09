@@ -80,9 +80,9 @@ export GIT_REV_CURRENT=`git rev-parse --short HEAD`
 export CSV_LINE="`date +%Y-%m-%d`",${GIT_REV_CURRENT},"${CI_MACHINE_TYPE}/${GIT_REV_CURRENT}/index.html"
 echo $CSV_LINE >> gh-pages/_data/$CI_MACHINE_TYPE.csv
 
-DEPLOY_DIR="gh-pages/vmops/${CI_MACHINE_TYPE}/${GIT_REV_CURRENT}/"
+DEPLOY_DIR="gh-pages/tlb/${CI_MACHINE_TYPE}/${GIT_REV_CURRENT}/"
 mkdir -p ${DEPLOY_DIR}
-cp gh-pages/vmops/index.markdown ${DEPLOY_DIR}
+cp gh-pages/tlb/index.markdown ${DEPLOY_DIR}
 
 ls -lh
 

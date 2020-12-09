@@ -6,7 +6,7 @@ pip3 install -r scripts/requirements.txt
 make clean
 make
 
-rm *.log *.csv *.png *.pdf /dev/shm/vmops_bench_* || true
+rm *.log *.csv *.png *.pdf /dev/shm/tlb_bench_* || true
 sudo sysctl -w vm.max_map_count=50000000
 #echo 192 | sudo tee  /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
 
@@ -59,9 +59,9 @@ if [[ "$1" = "throughput" ]]; then
 
 	for benchmark in $benchmarks; do
 
-		CSVFILE_ALL=vmops_barrelfish_${benchmark}_threads_all_results.csv
-		LOGFILE=vmops_barrelfish_${benchmark}_threads_1_logfile.log
-		CSVFILE=vmops_barrelfish_${benchmark}_threads_1_results.csv
+		CSVFILE_ALL=tlb_barrelfish_${benchmark}_threads_all_results.csv
+		LOGFILE=tlb_barrelfish_${benchmark}_threads_1_logfile.log
+		CSVFILE=tlb_barrelfish_${benchmark}_threads_1_results.csv
 		echo "maxcores=1" >> $CSVFILE_ALL
 		(python3 scripts/run_barrelfish.py  --verbose   --benchmark $benchmark  --csvthpt "$CSVFILE" --csvlat "tmp.csv" --cores 1 --hake --time $BF_DURATION || true) | tee $LOGFILE
 		if [ -f $CSVFILE ]; then
@@ -70,8 +70,8 @@ if [[ "$1" = "throughput" ]]; then
 		for corecount in `seq 8 $increment $MAX_CORES`; do
 			echo "$benchmark with $corecount cores"
 
-			LOGFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_logfile.log
-			CSVFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_results.csv
+			LOGFILE=tlb_barrelfish_${benchmark}_threads_${corecount}_logfile.log
+			CSVFILE=tlb_barrelfish_${benchmark}_threads_${corecount}_results.csv
 			echo "maxcores=${corecount}" >> $CSVFILE_ALL
 			(python3 scripts/run_barrelfish.py --csvthpt "$CSVFILE" --csvlat "tmp.csv" --benchmark $benchmark --cores $corecount --time $BF_DURATION || true) | tee $LOGFILE
 
@@ -97,7 +97,7 @@ echo $CSV_LINE >> gh-pages/_data/$CI_MACHINE_TYPE.csv
 
 DEPLOY_DIR="gh-pages/tlb/${CI_MACHINE_TYPE}/${GIT_REV_CURRENT}/"
 mkdir -p ${DEPLOY_DIR}
-cp gh-pages/vmops/index.markdown ${DEPLOY_DIR}
+cp gh-pages/tlb/index.markdown ${DEPLOY_DIR}
 
 ls -lh
 
