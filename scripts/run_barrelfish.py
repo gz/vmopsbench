@@ -227,7 +227,7 @@ def run_barrelfish(args):
                 bench_arg = bench_arg
             )
 
-        my_menu = MENU_LST.format(bin=args.benchmark, params=params)
+        my_menu = MENU_LST.format(bin=bin, params=params)
         if args.verbose:
             print("Using the following generated menu.lst")
             print(my_menu)
