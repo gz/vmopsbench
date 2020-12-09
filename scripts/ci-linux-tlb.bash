@@ -44,7 +44,7 @@ if [[ "$1" = "latency" ]]; then
 		THPT_CSVFILE_ALL=tlb_linux_${benchmark}_threads_all_throughput_results.csv
 
 		echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $THPT_CSVFILE_ALL
-		for cores in 1 `seq 8 $increment $MAX_CORES`; do
+		for cores in 1 `seq $increment $increment $MAX_CORES`; do
 
 	   	    LOGFILE=tlb_linux_${benchmark}_threads_${cores}_latency_logfile.log
 			THPT_CSVFILE=tlb_linux_${benchmark}_threads_${cores}_throughput_results.csv

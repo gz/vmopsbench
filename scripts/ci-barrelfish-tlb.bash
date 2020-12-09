@@ -67,7 +67,7 @@ if [[ "$1" = "throughput" ]]; then
 		if [ -f $CSVFILE ]; then
 			cat $CSVFILE >> $CSVFILE_ALL
 		fi;
-		for corecount in 1 4 8 14 16 24 28; do
+		for corecount in `seq 8 $increment $MAX_CORES`; do
 			echo "$benchmark with $corecount cores"
 
 			LOGFILE=vmops_barrelfish_${benchmark}_threads_${corecount}_logfile.log

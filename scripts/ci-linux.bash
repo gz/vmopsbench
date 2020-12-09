@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Usage: 
+# Usage:
 # - CI_MACHINE_TYPE=skylake2x bash scripts/ci-linux.bash latency
 # - CI_MACHINE_TYPE=skylake2x bash scripts/ci-linux.bash throughput
 #
@@ -43,7 +43,7 @@ if [[ "$1" = "throughput" ]]; then
 
 		CSVFILE_ALL=vmops_linux_${benchmark}_threads_all_results.csv
 		echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $CSVFILE_ALL
-		for cores in 1 `seq 0 $increment $MAX_CORES`; do
+		for cores in 1 `seq $increment $increment $MAX_CORES`; do
 
 	   	    LOGFILE=vmops_linux_${benchmark}_threads_${cores}_logfile.log
 			CSVFILE=vmops_linux_${benchmark}_threads_${cores}_results.csv

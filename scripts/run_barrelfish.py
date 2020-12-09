@@ -291,4 +291,7 @@ if __name__ == '__main__':
     get_barreflish(args)
     deploy_vmops(args)
     build_barrelfish(args)
-    run_barrelfish(args)
+    try :
+        run_barrelfish(args)
+    except:
+        print("failed to run Barrelfish...")
