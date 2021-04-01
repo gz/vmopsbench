@@ -46,7 +46,7 @@ where
 
     pub fn thread_defaults(&mut self) -> &mut Self {
         let topology = MachineTopology::new();
-        let max_cores = topology.cores(false);
+        let max_cores = topology.cores();
 
         // On larger machines thread increments are bigger than on
         // smaller machines:
