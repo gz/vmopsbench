@@ -9,6 +9,8 @@ set -ex
 
 BASE="$(dirname "$0")"
 
+sudo sysctl -w vm.max_map_count=50000000
+echo 100000| sudo tee /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
 
 pip3 install -r scripts/requirements.txt
 
@@ -92,7 +94,7 @@ elif [[ "$1" = "latency" ]]; then
 		    cat /proc/interrupts | grep TLB | tee -a $LOGFILE;
 		    (./bin/vmops -z $LATENCY_CSVFILE -p $cores -n $NUM_SAMPES -s $NUM_SAMPES -r 0 -m $memsz -b ${benchmark} ${numa} ${huge} | tee $THPT_CSVFILE) 3>&1 1>&2 2>&3 | tee -a $LOGFILE
 
-			python3 scripts/histogram.py $LATENCY_CSVFILE Linux
+			python3 scripts/histogram.py $LATENCY_CSVFILE Linux-Map
 			rm $LATENCY_CSVFILE
 		done
 	done

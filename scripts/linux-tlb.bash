@@ -62,7 +62,7 @@ if [[ "$1" = "latency" ]]; then
 		    cat /proc/interrupts | grep TLB | tee -a $LOGFILE;
 		    (./bin/vmops -z $LATENCY_CSVFILE -p $cores -n $NUM_SAMPES -s $NUM_SAMPES -r 0 -m $memsz -b ${benchmark} ${numa} ${huge} | tee $THPT_CSVFILE) 3>&1 1>&2 2>&3 | tee -a $LOGFILE
 
-			python3 scripts/histogram.py $LATENCY_CSVFILE Linux
+			python3 scripts/histogram.py $LATENCY_CSVFILE Linux-Unmap
 			rm $LATENCY_CSVFILE
 		done
 	done
