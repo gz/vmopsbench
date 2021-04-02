@@ -41,7 +41,7 @@ if [[ "$1" = "latency" ]]; then
 		    memsz='4096'
 		fi
 
-		THPT_CSVFILE_ALL=tlb_linux_${benchmark}_threads_all_throughput_results.csv
+		THPT_CSVFILE_ALL=tlb_linux_${benchmark}_threads_all_latency_results.csv
 
 		echo "thread_id,benchmark,core,ncores,memsize,numainterleave,mappings_size,page_size,memobj,isolation,duration,operations" | tee $THPT_CSVFILE_ALL
 		for cores in 1 `seq $increment $increment $MAX_CORES`; do
