@@ -95,6 +95,6 @@ profile-maponly-isolated-4 : perfdata/maponly-isolated-4.svg Makefile
 
 clean:
 	rm -rf bin
-	rm -rf *.csv *.log *.png *.pdf
+	rm -rf *.log *.png *.pdf
 	rm -rf perfdata
 	rm -rf scripts/barrelfish
